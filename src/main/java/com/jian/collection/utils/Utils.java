@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -68,14 +69,26 @@ public class Utils {
 		return clss;
 	}
 
-	public static String newId() {
+
+	public static String newUUId() {
+		return UUID.randomUUID().toString();
+	}
+	
+	public static String newUUIdMd5() {
+		return Tools.md5(UUID.randomUUID().toString());
+	}
+	
+	public static String newId(String suffix) {
 		int random = new Random().nextInt(10000);
 		String str = random+"";
 		for (int i = 0; i <  4 - str.length(); i++) {
 			str = "0" + str;
 		}
-		return ""+DateTools.formatDate("yyyyMMddHHmmssSSS")+str;
-		//return Tools.md5(UUID.randomUUID().toString());
+		return suffix + DateTools.formatDate("yyyyMMddHHmmssSSS") + str;
+	}
+
+	public static long newId() {
+		return SnowflakeIdWorker.generateId();
 	}
 	
 	public static byte[] compress(byte[] buff) throws IOException {

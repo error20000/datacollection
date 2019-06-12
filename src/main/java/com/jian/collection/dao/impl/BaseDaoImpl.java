@@ -43,6 +43,7 @@ import com.jian.annotation.PrimaryKey;
 import com.jian.annotation.PrimaryKeyCondition;
 import com.jian.annotation.Table;
 import com.jian.collection.dao.BaseDao;
+import com.jian.collection.entity.User;
 import com.jian.tools.core.DateTools;
 import com.jian.tools.core.JsonTools;
 import com.jian.tools.core.Tools;
@@ -1858,7 +1859,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
 	 * @throws SQLException  SQL 异常
 	 * @throws ReflectiveOperationException  反射异常
 	 */
-    public static Map<String, Object> getOneRowWithMap(ResultSet resultset)
+    public Map<String, Object> getOneRowWithMap(ResultSet resultset)
 			throws SQLException, ReflectiveOperationException {
 		 
 		HashMap<String, Object> resultMap = new HashMap<String, Object>();
@@ -1870,13 +1871,16 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
 			columns.put(metaData.getColumnLabel(i), metaData.getColumnType(i));
 		}
 		//组装Map
-		for(Entry<String, Integer> columnEntry : columns.entrySet()){
+		Class<T> clzz = getObejctClass();
+		Method method = Tools.findMethod(clzz, "resultSetToMap", new Class[]{ResultSet.class});
+		resultMap =  (HashMap<String, Object>) method.invoke(clzz.newInstance(), resultset);
+		/*for(Entry<String, Integer> columnEntry : columns.entrySet()){
 			String methodName = getDataMethod(columnEntry.getValue());
 			//获得取值方法参数参数是 String 类型的对应方法 (column label)
 			Method method = Tools.findMethod(resultset.getClass(), methodName, new Class[]{String.class});
 			Object value = method.invoke(resultset, columnEntry.getKey().toLowerCase());
 			resultMap.put(columnEntry.getKey().toLowerCase(), value);
-		}
+		}*/
 		return resultMap;
 	}
     
@@ -1997,7 +2001,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
      * @throws ParseException  解析异常
      */
 	@SuppressWarnings("unchecked")
-    public static <T> T  getOneRowWithObject(ResultSet resultset, Class<T> clazz)
+    public  <T> T  getOneRowWithObject(ResultSet resultset, Class<T> clazz)
 			throws SQLException, ReflectiveOperationException, ParseException {
     	Map<String, Object> rowMap = getOneRowWithMap(resultset);
     	if(Tools.isBasicType(clazz)){

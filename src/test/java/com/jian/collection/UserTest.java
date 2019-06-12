@@ -10,10 +10,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.jian.collection.entity.User;
 import com.jian.collection.service.UserService;
+import com.jian.collection.utils.Utils;
 
 @RunWith(SpringRunner.class)   
 @SpringBootTest(classes={App.class})
-public class AppTest {
+public class UserTest {
     
 	@Autowired
 	private UserService service;
@@ -21,6 +22,7 @@ public class AppTest {
 	@Test
 	public void Add(){
 		User user = new User();
+		user.setPid(Utils.newId());
 		user.setUsername("test");
 		user.setPassword("test");
 		int res = service.add(user);
@@ -28,14 +30,14 @@ public class AppTest {
 	}
 	
 
-	@Test
+	/*@Test
 	public void update(){
 		User user = new User();
 		user.setUsername("test");
 		user.setPassword("test222");
 		int res = service.modify(user);
 		System.out.println("------modify------"+res);
-	}
+	}*/
 	
 	@Test
 	public void findAll(){
