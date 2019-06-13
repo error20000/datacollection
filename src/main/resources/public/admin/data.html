@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- css -->
+  <link rel="stylesheet" href="js/element-2.4.11/theme-chalk/index.css">
+  <link rel="stylesheet" href="css/fontawesome5.6.3/css/all.css">
+  <link rel="stylesheet" href="css/index.css">
+</head>
+<body class="animated fadeIn">
+  <div id="app">
+  
+  	<div v-show="!preloading" class="el-loading-mask" style="background-color: rgba(255,255,255,1);">
+	   <div class="el-loading-spinner">
+	    <i class="fa fa-spinner fa-pulse"></i>
+ 	    <p class="el-loading-text">Loading...</p>
+	   </div>
+    </div>
+    
+    <section style="padding: 20px;" v-show="preloading">
+		<!-- filter -->
+		<el-row>
+		<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
+			<el-col :span="24">
+				<el-form :inline="true" :model="filters" style="float: right;">
+					<el-form-item>
+						<el-select v-model="filters.user" placeholder="Select">
+							<el-option value="" label="all user"></el-option>
+						    <el-option
+						      v-for="item in userOptions"
+						      :key="item.pid"
+						      :label="item.username"
+						      :value="item.pid">
+						    </el-option>
+						  </el-select>
+					</el-form-item>
+					<el-form-item>
+						<el-date-picker
+					      v-model="filters.start"
+					      type="datetime"
+					      value-format="yyyy-MM-dd HH:mm:ss"
+					      placeholder="Select start date">
+					    </el-date-picker>
+					</el-form-item>
+					<el-form-item>
+						<el-date-picker
+					      v-model="filters.end"
+					      type="datetime"
+					      value-format="yyyy-MM-dd HH:mm:ss"
+					      placeholder="Select end date">
+					    </el-date-picker>
+					</el-form-item>
+					<el-form-item>
+						<el-button type="primary" @click="query">Query</el-button>
+					</el-form-item>
+				</el-form>
+			</el-col>
+		</el-col>
+		</el-row>
+		
+	    <el-tabs v-model="activeTab" >
+		    <el-tab-pane label="Table" name="table">
+				<!-- list -->
+				<el-table :data="list" highlight-current-row border v-loading="listLoading" @selection-change="selsChange" style="width: 100%;" class="mytable" >
+					<el-table-column label="Pid" prop="pid" width="120">
+					</el-table-column>
+					<el-table-column label="User" prop="sn" >
+					</el-table-column>
+					<el-table-column label="Date" prop="s1" >
+					</el-table-column>
+					<el-table-column label="Local" prop="s2" >
+					</el-table-column>
+					<el-table-column label="Type" prop="s3" >
+					</el-table-column>
+					<el-table-column label="Type" prop="s4" >
+					</el-table-column>
+					<el-table-column label="Type" prop="ax" >
+					</el-table-column>
+					<el-table-column label="Type" prop="ay" >
+					</el-table-column>
+					<el-table-column label="Type" prop="ty" >
+					</el-table-column>
+					<el-table-column label="Type" prop="tm" >
+					</el-table-column>
+					<el-table-column label="Type" prop="td" >
+					</el-table-column>
+					<el-table-column label="Type" prop="th" >
+					</el-table-column>
+					<el-table-column label="Type" prop="tmm" >
+					</el-table-column>
+					<el-table-column label="Type" prop="ts" >
+					</el-table-column>
+					<el-table-column label="Type" prop="gs" >
+					</el-table-column>
+					<el-table-column label="Type" prop="dxj" >
+					</el-table-column>
+					<el-table-column label="Type" prop="jd" >
+					</el-table-column>
+					<el-table-column label="Type" prop="nbw" >
+					</el-table-column>
+					<el-table-column label="Type" prop="wd" >
+					</el-table-column>
+					<el-table-column label="Type" prop="act" >
+					</el-table-column>
+					<el-table-column label="Type" prop="createtime" >
+					</el-table-column>
+					<el-table-column fixed="right" label="handle" width="220">
+						<template scope="scope">
+							<el-button size="small" @click="handleMap(scope.$index, scope.row)">Map</el-button>
+							<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">Del</el-button>
+						</template>
+					</el-table-column>
+				</el-table>
+		
+				<!-- page tool -->
+				<el-col :span="24" class="toolbar">
+					<!-- <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">Batch remove</el-button> -->
+					<el-pagination layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange" @current-change="handleCurrentChange" :page-sizes="[10, 20, 50, 100]" :page-size="rows" :total="total" style="float:right;">
+					</el-pagination>
+				</el-col>
+			</el-tab-pane>
+		  </el-tabs>
+		
+	</section>
+  </div>
+</body>
+  <script src="js/jquery-3.4.1.js" type="text/javascript"></script>
+  <script src="js/vue-2.6.10/vue.js" type="text/javascript"></script>
+  <script src="js/element-2.4.11/index.js" type="text/javascript"></script>
+  <script type="text/javascript" src="js/global.js"></script>
+  <script type="text/javascript" src="js/data.js"></script>
+</html>

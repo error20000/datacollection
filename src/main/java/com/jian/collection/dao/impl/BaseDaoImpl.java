@@ -999,7 +999,10 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
 		String sql = "SELECT * FROM "+tableName+" WHERE " + wsql;
 		//-1 不参与分页
 		if(rows != -1){
-			sql += " limit " + start + ", " + rows;
+			//sql += " limit " + start + ", " + rows;
+			String sqltmp = " and rownum <= " + (start/rows + 1)*rows;
+			sqltmp += " minus  " + sql + " and rownum <= " + start;  // minus--差集   rownum--只能比较小于
+			sql += sqltmp;
 		}
 		//DEBUG
 		debug(tableName, "QUERY SQL", sql);
@@ -1226,7 +1229,10 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
 		}
 		//-1 不参与分页
 		if(rows != -1){
-			sql += " limit " + start + ", " + rows;
+			//sql += " limit " + start + ", " + rows;
+			String sqltmp = " and rownum <= " + (start/rows + 1)*rows;
+			sqltmp += " minus  " + sql + " and rownum <= " + start;  // minus--差集   rownum--只能比较小于
+			sql += sqltmp;
 		}
 		
 		//DEBUG
@@ -1457,7 +1463,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
 		if(Tools.isNullOrEmpty(wsql)){
 			return res;
 		}
-		String sql = "SELECT count(1) FROM "+tableName+" WHERE " + wsql;
+		String sql = "SELECT count(*) FROM "+tableName+" WHERE " + wsql;
 		//DEBUG
 		debug(tableName, "SIZE SQL", sql);
 		try {
@@ -1614,7 +1620,10 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
 			System.out.println("Query excution SQL Error! \n SQL is (select ): \n\t" + sql + "\n");
 		}
 		
-		sql = sql + " limit " + start + ", " + rows;
+		//sql = sql + " limit " + start + ", " + rows;
+		String sqltmp = " and rownum <= " + (start/rows + 1)*rows;
+		sqltmp += " minus  " + sql + " and rownum <= " + start;  // minus--差集   rownum--只能比较小于
+		sql += sqltmp;
 		List<String> sqlParams = getSqlParams(sql);
 		String pSql = preparedSql(sql);
 		
@@ -1654,7 +1663,10 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
 			System.out.println("Query excution SQL Error! \n SQL is (select ): \n\t" + sql + "\n");
 		}
 		
-		sql = sql + " limit " + start + ", " + rows;
+		//sql = sql + " limit " + start + ", " + rows;
+		String sqltmp = " and rownum <= " + (start/rows + 1)*rows;
+		sqltmp += " minus  " + sql + " and rownum <= " + start;  // minus--差集   rownum--只能比较小于
+		sql += sqltmp;
 		List<String> sqlParams = getSqlParams(sql);
 		String pSql = preparedSql(sql);
 		
@@ -1871,9 +1883,13 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
 			columns.put(metaData.getColumnLabel(i), metaData.getColumnType(i));
 		}
 		//组装Map
-		Class<T> clzz = getObejctClass();
-		Method method = Tools.findMethod(clzz, "resultSetToMap", new Class[]{ResultSet.class});
-		resultMap =  (HashMap<String, Object>) method.invoke(clzz.newInstance(), resultset);
+		for(Entry<String, Integer> columnEntry : columns.entrySet()){
+			String methodName = "getObject";
+			//获得取值方法参数参数是 String 类型的对应方法 (column label)
+			Method method = Tools.findMethod(resultset.getClass(), methodName, new Class[]{String.class});
+			Object value = method.invoke(resultset, columnEntry.getKey().toLowerCase());
+			resultMap.put(columnEntry.getKey().toLowerCase(), value);
+		}
 		/*for(Entry<String, Integer> columnEntry : columns.entrySet()){
 			String methodName = getDataMethod(columnEntry.getValue());
 			//获得取值方法参数参数是 String 类型的对应方法 (column label)
@@ -2043,7 +2059,8 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
     				for (Method method : methods) {
     					if(method.getName().startsWith("set") && method.getName().substring(3).equalsIgnoreCase(f.getName())){
     						try {
-    							method.invoke(object, rowMap.get(key));
+    							String value = String.valueOf(rowMap.get(key));
+    							method.invoke(object, getValue(value, f.getType()));
     						} catch (Exception e) {
     							e.printStackTrace();
     						}
@@ -2055,6 +2072,29 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
     	}
     	
     }
+	
+	private Object getValue(String value, Class<?> clazz){
+		Object object = null;
+		if (Byte.class == clazz || byte.class == clazz) 
+			object = Byte.valueOf(value);
+		else if (Short.class == clazz || short.class == clazz) 
+			object = Short.valueOf(value);
+		else if (Integer.class == clazz || int.class == clazz) 
+			object = Integer.valueOf(value);
+		else if (Long.class == clazz || long.class == clazz) 
+			object = Long.valueOf(value);
+		else if (BigInteger.class == clazz)
+			object = BigInteger.valueOf(Long.valueOf(value));
+		else if (Float.class == clazz || float.class == clazz)
+			object = Float.valueOf(value);
+		else if (Double.class == clazz || double.class == clazz) 
+			object = Double.valueOf(value);
+		else if (BigDecimal.class == clazz) 
+			object =  new BigDecimal(value);
+		else
+			object = value;
+		return object;
+	}
 	
 	//获取泛型注解的table name。
 	private String getTableName(){

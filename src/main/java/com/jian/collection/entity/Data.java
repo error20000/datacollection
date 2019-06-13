@@ -10,7 +10,7 @@ import com.jian.annotation.PrimaryKeyType;
 import com.jian.annotation.Table;
 
 @Table("s_data")
-public class Data extends Base<Data>  {
+public class Data {
 
 	@PrimaryKey(type=PrimaryKeyType.NORMAL)
 	private long pid;

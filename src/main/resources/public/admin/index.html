@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Data Collection</title>
+  <!-- 引入样式 -->
+  <link rel="stylesheet" href="js/element-2.4.11/theme-chalk/index.css">
+  <link rel="stylesheet" href="css/fontawesome5.6.3/css/all.css">
+  <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+  <div id="app">
+  
+  	<div v-show="!preloading" class="el-loading-mask" style="background-color: rgba(255,255,255,1);">
+	   <div class="el-loading-spinner">
+	    <i class="fa fa-spinner fa-pulse"></i>
+ 	    <p class="el-loading-text">Loading...</p>
+	   </div>
+    </div>
+    
+	<el-container v-show="preloading">
+	    <el-header>
+	      <el-row>
+	        <el-col :span="24" class="header">
+	          <el-col :span="4" class="logo" style="width: 210px;">
+	            {{sysName}}
+	          </el-col>
+	          <el-col :span="10">
+	            <el-menu background-color="#20a0ff" text-color="#fff" active-text-color="#ffd04b" class="el-menu-demo" mode="horizontal" @select="handleSelect">
+	              <el-menu-item index="1" >数据集</el-menu-item> 
+	              <!-- <el-menu-item index="2" >Options</el-menu-item> 
+	              <el-menu-item index="3" >Comment</el-menu-item> 
+	              <el-menu-item index="4" >Track</el-menu-item>  -->
+	            </el-menu>
+	          </el-col>
+	          <el-col :span="4" class="userinfo">
+					<el-dropdown>
+						<span class="el-dropdown-link userinfo-inner">
+						{{sysUserName}}<i class="el-icon-arrow-down el-icon--right"></i>
+						</span>
+						<el-dropdown-menu slot="dropdown">
+							<el-dropdown-item @click.native="handlepwdChange"><i class="fa fa-key fa-fw"></i>&nbsp;Change Password</el-dropdown-item>
+							<el-dropdown-item @click.native="logout"><i class="fa fa-power-off fa-fw"></i>&nbsp;Logout</el-dropdown-item>
+						</el-dropdown-menu>
+					</el-dropdown>
+	          </el-col>
+	        </el-col>
+	      </el-row>
+	    </el-header>
+	    <el-main class="main">
+	      <iframe class="content-iframe" src="" width="100%" height="100%"></iframe>
+	    </el-main>
+
+		<!--Change Password-->
+		<el-dialog title="Change Password" :visible.sync="pwdFormVisible" :close-on-click-modal="false">
+			<el-form :model="pwdForm"  :label-position="'top'" :rules="pwdFormRules" ref="pwdForm">
+				<el-form-item label="Original password" prop="oldPwd">
+					<el-input type="text" v-model="pwdForm.oldPwd"></el-input>
+				</el-form-item>
+				<el-form-item label="Password" prop="newPwd">
+					<el-input type="text" v-model="pwdForm.newPwd"></el-input>
+				</el-form-item>
+				<el-form-item label="Confirmed password" prop="newPwd2">
+					<el-input type="text" v-model="pwdForm.newPwd2"></el-input>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click="pwdChangeClose">Cancel</el-button>
+				<el-button type="primary" @click="pwdChange" :loading="pwdLoading">Submit</el-button>
+			</div>
+		</el-dialog>
+  	</el-container>
+  	
+  </div>
+</body>
+  <script src="js/jquery-3.4.1.js" type="text/javascript"></script>
+  <script src="js/vue-2.6.10/vue.js" type="text/javascript"></script>
+  <script src="js/element-2.4.11/index.js" type="text/javascript"></script>
+  <script type="text/javascript" src="js/global.js"></script>
+  <script type="text/javascript" src="js/index.js"></script>
+</html>
