@@ -29,7 +29,7 @@ function ajaxReq(url, param, callback, cp){
             },
             rules: {
               username: [
-                { required: true, message: '请输入username。', trigger: 'blur' },
+                { required: true, message: '请输入用户名。', trigger: 'blur' },
               ],
               password: [
                 { required: true, message: '请输入密码。', trigger: 'blur' },
@@ -54,9 +54,19 @@ function ajaxReq(url, param, callback, cp){
 					if(res.code > 0){
 						localStorage.setItem('loginUser', JSON.stringify(res.data));
 						window.location.href = 'index.html';
+					}else if(res.code == -110){
+						self.$message({
+							message: '密码错误',
+							type: 'warning'
+						})
+					}else if(res.code == -109){
+						self.$message({
+							message: '用户名不存在',
+							type: 'warning'
+						})
 					}else{
 						self.$message({
-							message: 'failed',
+							message: '失败',
 							type: 'warning'
 						})
 					}

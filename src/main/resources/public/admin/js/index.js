@@ -17,15 +17,15 @@ new Vue({
           pwdLoading: false,
           pwdFormRules: {
             oldPwd: [
-              { required: true, message: "Please enter the original password.", trigger: "blur" }
+              { required: true, message: "请输入旧密码.", trigger: "blur" }
             ],
-            newPwd: [{ required: true, message: "Please enter the new password.", trigger: "blur" }],
+            newPwd: [{ required: true, message: "请输入新密码.", trigger: "blur" }],
             newPwd2: [
-              { required: true, message: "Please enter the new password again.", trigger: "blur" },
+              { required: true, message: "再次输入新密码.", trigger: "blur" },
               {
                 validator: (rule, value, callback) => {
                   if (value !== this.pwdForm.newPwd) {
-                    callback(new Error("Passwords does not match!"));
+                    callback(new Error("密码不一致!"));
                   } else {
                     callback();
                   }
@@ -50,9 +50,10 @@ new Vue({
 			
 			switch (Number(index)) {
 			case 1:
-				url = 'data.html';
+				url = 'beacon.html';
 				break;
 			case 2:
+				url = 'data.html';
 				break;
 			case 3:
 				break;
@@ -81,39 +82,39 @@ new Vue({
         pwdChange: function() {
           this.$refs.pwdForm.validate(valid => {
             if (valid) {
-              this.$confirm('Confirmation of submission?', 'Tips', {}).then(() => {
+              this.$confirm('确定提交吗?', '提示', {}).then(() => {
                 var params = Object.assign({}, this.pwdForm);
                 delete params.newPwd2;
                 var self = this;
                 this.pwdLoading = true;
                 ajaxReq(changePwdUrl, params, function(res) {
-                  self.addLoading = false;
+                  self.pwdLoading = false;
                   if (res.code > 0) {
                     self.$message({
-                      message: "success",
+                      message: "成功",
                       type: "success"
                     });
                     self.addFormVisible = false;
-                    localStorage.removeItem('user');
+                    localStorage.removeItem('loginUser');
                     parent.window.location.href = "login.html";
                   }else if(res.code == -206){
 					self.$message({
-							message: 'Missing parameters.',
+							message: '缺少参数.',
 							type: 'warning'
 						})
 					}else if(res.code == -213){
 						self.$message({
-							message: 'Incorrect password. ',
+							message: '密码错误. ',
 							type: 'warning'
 						})
 					}else if(res.code == -111){
 						self.$message({
-							message: 'Not logged in. ',
+							message: '未登录. ',
 							type: 'warning'
 						})
 					}else{
 						self.$message({
-							message: 'failed',
+							message: '失败',
 							type: 'warning'
 						})
 					}
@@ -124,7 +125,7 @@ new Vue({
         },
         //login
         logout: function() {
-          this.$confirm("Confirmation of logout", "Tips", {
+          this.$confirm("确定退出系统吗？", "提示", {
             //type: 'warning'
           }).then(() => {
               var self = this;
@@ -134,7 +135,7 @@ new Vue({
                 	parent.window.location.href = "login.html";
                 }else{
                 	self.$message({
-						message: 'failed',
+						message: '失败',
 						type: 'warning'
 					});
                 }
@@ -142,9 +143,7 @@ new Vue({
             }).catch(() => {});
         },
         isLogin: function(cb) {
-			var params = {
-					userId: this.user.pid
-			};
+			var params = {};
 			ajaxReq(isLoginUrl, params, function(res){
 				if(res.code <= 0){
 					localStorage.removeItem('loginUser');
@@ -168,6 +167,7 @@ new Vue({
   			parent.window.location.href = "login.html";
   			return;
   		}
+    	loginUserId = this.user.pid;
 		this.isLogin(this.initLoginUser);
 		this.preloading = true;
       }

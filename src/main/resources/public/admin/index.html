@@ -27,9 +27,9 @@
 	          </el-col>
 	          <el-col :span="10">
 	            <el-menu background-color="#20a0ff" text-color="#fff" active-text-color="#ffd04b" class="el-menu-demo" mode="horizontal" @select="handleSelect">
-	              <el-menu-item index="1" >数据集</el-menu-item> 
-	              <!-- <el-menu-item index="2" >Options</el-menu-item> 
-	              <el-menu-item index="3" >Comment</el-menu-item> 
+	              <el-menu-item index="1" >航标</el-menu-item> 
+	              <el-menu-item index="2" >数据集</el-menu-item> 
+	              <!-- <el-menu-item index="3" >Comment</el-menu-item> 
 	              <el-menu-item index="4" >Track</el-menu-item>  -->
 	            </el-menu>
 	          </el-col>
@@ -39,8 +39,8 @@
 						{{sysUserName}}<i class="el-icon-arrow-down el-icon--right"></i>
 						</span>
 						<el-dropdown-menu slot="dropdown">
-							<el-dropdown-item @click.native="handlepwdChange"><i class="fa fa-key fa-fw"></i>&nbsp;Change Password</el-dropdown-item>
-							<el-dropdown-item @click.native="logout"><i class="fa fa-power-off fa-fw"></i>&nbsp;Logout</el-dropdown-item>
+							<el-dropdown-item @click.native="handlepwdChange"><i class="fa fa-key fa-fw"></i>&nbsp;修改密码</el-dropdown-item>
+							<el-dropdown-item @click.native="logout"><i class="fa fa-power-off fa-fw"></i>&nbsp;退出</el-dropdown-item>
 						</el-dropdown-menu>
 					</el-dropdown>
 	          </el-col>
@@ -52,21 +52,21 @@
 	    </el-main>
 
 		<!--Change Password-->
-		<el-dialog title="Change Password" :visible.sync="pwdFormVisible" :close-on-click-modal="false">
+		<el-dialog title="密码修改" :visible.sync="pwdFormVisible" :close-on-click-modal="false">
 			<el-form :model="pwdForm"  :label-position="'top'" :rules="pwdFormRules" ref="pwdForm">
-				<el-form-item label="Original password" prop="oldPwd">
+				<el-form-item label="旧密码" prop="oldPwd">
 					<el-input type="text" v-model="pwdForm.oldPwd"></el-input>
 				</el-form-item>
-				<el-form-item label="Password" prop="newPwd">
+				<el-form-item label="新密码" prop="newPwd">
 					<el-input type="text" v-model="pwdForm.newPwd"></el-input>
 				</el-form-item>
-				<el-form-item label="Confirmed password" prop="newPwd2">
+				<el-form-item label="确认新密码" prop="newPwd2">
 					<el-input type="text" v-model="pwdForm.newPwd2"></el-input>
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
-				<el-button @click="pwdChangeClose">Cancel</el-button>
-				<el-button type="primary" @click="pwdChange" :loading="pwdLoading">Submit</el-button>
+				<el-button @click="pwdChangeClose">取消</el-button>
+				<el-button type="primary" @click="pwdChange" :loading="pwdLoading">提交</el-button>
 			</div>
 		</el-dialog>
   	</el-container>

@@ -1,11 +1,21 @@
 package com.jian.collection.controller;
 
-import java.util.HashMap;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFDataFormat;
+import org.apache.poi.hssf.usermodel.HSSFFont;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,15 +24,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.jian.collection.entity.Data;
 import com.jian.collection.entity.User;
 import com.jian.collection.service.DataService;
-import com.jian.collection.utils.Utils;
-import com.jian.tools.core.CacheTools;
 import com.jian.tools.core.JsonTools;
-import com.jian.tools.core.MapTools;
 import com.jian.tools.core.ResultKey;
 import com.jian.tools.core.ResultTools;
 import com.jian.tools.core.Tips;
 import com.jian.tools.core.Tools;
-import com.jian.tools.core.cache.CacheObject;
 
 @Controller
 @RequestMapping("/api/data")
@@ -72,6 +78,8 @@ public class DataController extends BaseController<Data> {
 		//参数
 		String page = Tools.getReqParamSafe(req, "page");
 		String rows = Tools.getReqParamSafe(req, "rows");
+		String startTime = Tools.getReqParamSafe(req, "start");
+		String endTime = Tools.getReqParamSafe(req, "end");
 		vMap = Tools.verifyParam("page", page, 0, 0, true);
 		if(vMap != null){
 			return JsonTools.toJsonString(vMap);
@@ -83,9 +91,22 @@ public class DataController extends BaseController<Data> {
 		int start = Tools.parseInt(page) <= 1 ? 0 : (Tools.parseInt(page) - 1) * Tools.parseInt(rows);
 		//参数
 		Map<String, Object> condition = Tools.getReqParamsToMap(req, Data.class);
+		String wsql = " 1=1 ";
+		for (String key : condition.keySet()) {
+			wsql += " and "+key+" = :"+key;
+		}
+		if(!Tools.isNullOrEmpty(startTime)) {
+			wsql += " and createtime >= :startTime";
+			condition.put("startTime", startTime);
+		}
+		if(!Tools.isNullOrEmpty(endTime)) {
+			wsql += " and createtime <= :endTime";
+			condition.put("endTime", endTime);
+		}
 		
-		List<Data> list = service.findPage(condition, start, Tools.parseInt(rows));
-		long total = service.size(condition);
+		
+		List<Data> list = service.getDao().findList(wsql, condition, start, Tools.parseInt(rows));
+		long total = service.getDao().size(wsql, condition);
         return ResultTools.custom(Tips.ERROR1).put(ResultKey.TOTAL, total).put(ResultKey.DATA, list).toJSONString();
 	}
 	
@@ -124,85 +145,127 @@ public class DataController extends BaseController<Data> {
         return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, list).toJSONString();
 	}
 
+
 	//TODO 自定义方法
 
-	@RequestMapping("/collection")
+	@RequestMapping("/excel")
     @ResponseBody
-	public String collection(HttpServletRequest req) {
+	public String excel(HttpServletRequest req, HttpServletResponse resp) {
+		
 		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
 		//sign
 		vMap = verifySign(req);
 		if(vMap != null){
 			return JsonTools.toJsonString(vMap);
 		}
-		
-		//参数
-		String username = Tools.getReqParamSafe(req, "username");
-		String password = Tools.getReqParamSafe(req, "password");
-		vMap = Tools.verifyParam("username", username, 0, 0);
-		if(vMap != null){
-			return ResultTools.custom(Tips.ERROR206, "username").toJSONString();
-		}
-		vMap = Tools.verifyParam("password", password, 0, 0);
-		if(vMap != null){
-			return ResultTools.custom(Tips.ERROR206, "password").toJSONString();
-		}
-		
-		//检查
-		User user = service.findOne(MapTools.custom().put("username", username).build());
-		if(user == null){
-			return ResultTools.custom(Tips.ERROR109).toJSONString();
-		}
-		if(!user.getPassword().equals(Tools.md5(password))){
-			return ResultTools.custom(Tips.ERROR110).toJSONString();
-		}
-		
-		//保存
-//		HttpSession session = req.getSession();
-//		session.setAttribute(config.login_session_key, user);
-		user.setPassword("");
-		CacheTools.setCacheObj("login_user_"+user.getPid(), user);
-		return ResultTools.custom(Tips.ERROR1).toJSONString();
-	}
-
-
-	@RequestMapping("/test")
-    @ResponseBody
-	public String test(HttpServletRequest req) {
-		Map<String, Object> vMap = null;
-		//sign
-		vMap = verifySign(req);
+		//权限
+		vMap = verifyAuth(req);
 		if(vMap != null){
 			return JsonTools.toJsonString(vMap);
 		}
-		
-		//参数
-		String username = Tools.getReqParamSafe(req, "username");
-		String password = Tools.getReqParamSafe(req, "password");
-		vMap = Tools.verifyParam("username", username, 0, 0);
-		if(vMap != null){
-			return ResultTools.custom(Tips.ERROR206, "username").toJSONString();
-		}
-		vMap = Tools.verifyParam("password", password, 0, 0);
-		if(vMap != null){
-			return ResultTools.custom(Tips.ERROR206, "password").toJSONString();
-		}
-		
-		//检查
-		User user = service.findOne(MapTools.custom().put("username", username).build());
+		//登录用户
+		User user = getLoginUser(req);
 		if(user == null){
-			return ResultTools.custom(Tips.ERROR109).toJSONString();
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
 		}
-		if(!user.getPassword().equals(Tools.md5(password))){
-			return ResultTools.custom(Tips.ERROR110).toJSONString();
+		/*if(user.getAdmin() != 1){
+			return ResultTools.custom(Tips.ERROR201).toJSONString();
+		}*/
+
+		String wsql = " 1=1 ";
+		String start = Tools.getReqParamSafe(req, "start");
+		String end = Tools.getReqParamSafe(req, "end");
+		//查询
+		List<Data> list = null;
+		Map<String, Object> condition = Tools.getReqParamsToMap(req, Data.class);
+		for (String key : condition.keySet()) {
+			wsql += " and "+key+" = :"+key;
 		}
-		
-		//保存
-//		HttpSession session = req.getSession();
-//		session.setAttribute(config.login_session_key, user);
-		user.setPassword("");
-		CacheTools.setCacheObj("login_user_"+user.getPid(), user);
-		return ResultTools.custom(Tips.ERROR1).toJSONString();
+		if(!Tools.isNullOrEmpty(start)) {
+			wsql += " and createtime >= :start";
+			condition.put("start", start);
+		}
+		if(!Tools.isNullOrEmpty(end)) {
+			wsql += " and createtime <= :end";
+			condition.put("end", end);
+		}
+		if(condition == null || condition.isEmpty()){
+			list = service.findAll();
+		}else {
+			list = service.getDao().findList(wsql, condition);
+		}
+
+		//执行
+		resp.addHeader("Content-Disposition","attachment;filename=data.xls");
+		resp.setContentType("application/vnd.ms-excel;charset=utf-8");
+		try {
+			OutputStream toClient = new BufferedOutputStream(resp.getOutputStream());
+			//实例化HSSFWorkbook
+            HSSFWorkbook workbook = new HSSFWorkbook();
+            //创建一个Excel表单，参数为sheet的名字
+            HSSFSheet sheet = workbook.createSheet("sheet");
+
+			//设置表头
+			String head = "Pid,序列号,接收时间,S1,S2,S3,S4,X轴角度,Y轴角度,GPS状态,东西经,经度,南北纬,纬度,年,月,日,时,分,秒,自动校时";
+			String[] heads = head.split(",");
+            HSSFRow row = sheet.createRow(0);
+            //设置列宽，setColumnWidth的第二个参数要乘以256，这个参数的单位是1/256个字符宽度
+            for (int i = 0; i <= heads.length; i++) {
+            	sheet.setColumnWidth(i, (int)(( 15 + 0.72) * 256)); // 15 在EXCEL文档中实际列宽为14.29
+            }
+            //设置为居中加粗,格式化时间格式
+            HSSFCellStyle style = workbook.createCellStyle();
+            HSSFFont font = workbook.createFont();
+            font.setBold(true);
+            style.setFont(font);
+            style.setDataFormat(HSSFDataFormat.getBuiltinFormat("yyyy/MM/dd HH:mm:ss"));
+            //创建表头名称
+            HSSFCell cell;
+            for (int j = 0; j < heads.length; j++) {
+                cell = row.createCell(j);
+                cell.setCellValue(heads[j]);
+                cell.setCellStyle(style);
+            }
+			//遍历导出数据
+			for (int i = 0; i < list.size(); i++) {
+				Data node = list.get(i);
+
+				HSSFRow rowc = sheet.createRow(i+1);
+				rowc.createCell(0).setCellValue(node.getPid()+"");
+				rowc.createCell(1).setCellValue(node.getSn());
+				rowc.createCell(2).setCellValue(node.getCreatetime());
+				rowc.createCell(3).setCellValue(node.getS1());
+				rowc.createCell(4).setCellValue(node.getS2());
+				rowc.createCell(5).setCellValue(node.getS3());
+				rowc.createCell(6).setCellValue(node.getS4());
+				rowc.createCell(7).setCellValue(node.getAx()+"");
+				rowc.createCell(8).setCellValue(node.getAy()+"");
+				rowc.createCell(9).setCellValue(node.getGs());
+				rowc.createCell(10).setCellValue(node.getDxj());
+				rowc.createCell(11).setCellValue(node.getJd()+"");
+				rowc.createCell(12).setCellValue(node.getNbw());
+				rowc.createCell(13).setCellValue(node.getWd()+"");
+				rowc.createCell(14).setCellValue(node.getTy());
+				rowc.createCell(15).setCellValue(node.getTm());
+				rowc.createCell(16).setCellValue(node.getTd());
+				rowc.createCell(17).setCellValue(node.getTh());
+				rowc.createCell(18).setCellValue(node.getTmm());
+				rowc.createCell(19).setCellValue(node.getTs());
+				rowc.createCell(20).setCellValue(node.getAct());
+			}
+			workbook.write(toClient);
+			workbook.close();
+			toClient.flush();
+			toClient.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return "";
 	}
 	
 }

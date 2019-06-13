@@ -1,7 +1,8 @@
 var baseUrl = parent.window.baseUrl || '../';
 
-var queryUrl = baseUrl + "api/data/findPage";
-var excelUrl = baseUrl + "api/data/excel";
+var queryUrl = baseUrl + "api/beacon/findPage";
+var addUrl = baseUrl + "api/beacon/add";
+var delUrl = baseUrl + "api/beacon/delete";
 
 var ajaxReq = parent.window.ajaxReq || "";
 
@@ -13,8 +14,8 @@ var myvue = new Vue({
 	    		activeTab: 'table',
 				filters: {
 					user: '',
-					start: '',
-					end: ''
+					connected: '',
+					status: ''
 				},
 				list: [],
 				total: 0,
@@ -23,6 +24,24 @@ var myvue = new Vue({
 				listLoading: false,
 				sels: [],
 				preloading: false,
+				connectedOptions: [
+					{value: "Y", label: "已连接"},
+					{value: "N", label: "未连接"},
+				],
+				statusOptions: [
+					{value: "Y", label: "正常"},
+					{value: "N", label: "异常"},
+				],
+
+				//add
+				addFormVisible: false,
+				addLoading: false, 
+				addForm: {},
+				addFormRules: {
+		              sn: [
+		                { required: true, message: '请输入序列号.', trigger: 'blur' },
+		              ]
+				},
 				
 				user: ''
 			}
@@ -72,21 +91,58 @@ var myvue = new Vue({
 			reset: function(){
 				this.filters = {
 					user: '',
-					start: '',
-					end: ''
+					connected: '',
+					status: ''
 				};
 				this.getList();
 			},
-			getExcel: function(){
-				this.query();
-				var params = "";
-				for ( var key in this.filters) {
-					if(this.filters[key]){
-						params += "&"+key+"="+this.filters[key];
+			handleAdd: function(){
+				this.addFormVisible = true;
+				this.addForm = {
+						name: '',
+						sn: '',
+						connected: 'N',
+						status: 'N'
+				};
+			},
+			addClose: function () {
+				this.addFormVisible = false;
+				this.addLoading = false;
+				this.$refs.addForm.resetFields();
+			},
+			addSubmit: function () {
+				this.$refs.addForm.validate((valid) => {
+					if (valid) {
+						this.$confirm('确定提交吗?', '提示', {}).then(() => {
+							var params = Object.assign({}, this.addForm);
+							var self = this;
+							this.addLoading = true;
+							ajaxReq(addUrl, params, function(res){
+								self.addLoading = false;
+								self.handleResOperate(res, function(){
+									self.addFormVisible = false;
+									self.getList();
+								});
+							});
+						});
 					}
-				}
-				params += "&userId="+this.user.pid;
-				parent.window.open(excelUrl+(params ? "?"+params.substring(1) : ""));
+				});
+			},
+			handleDel: function(index, row){
+				this.$confirm('确定删除该条记录吗? ', '提示', {
+					type: 'warning'
+				}).then(() => {
+					var self = this;
+					this.listLoading = true;
+					ajaxReq(delUrl, {pid: row.pid }, function(res){
+						self.listLoading = false;
+						self.handleResOperate(res, function(){
+							self.getList();
+						});
+					});
+					
+				}).catch(() => {
+				});
 			},
 			
 			selsChange: function (sels) {
@@ -99,6 +155,9 @@ var myvue = new Vue({
 			},
 			handleResQuery: function(res, success, failed){
 				this.handleRes(false, res, success, failed);
+			},
+			handleResOperate: function(res, success, failed){
+				this.handleRes(true, res, success, failed);
 			},
 			handleRes: function(show, res, success, failed){
 				if(res.code > 0){

@@ -11,9 +11,49 @@
  Target Server Version : 110200
  File Encoding         : 65001
 
- Date: 12/06/2019 22:33:06
+ Date: 13/06/2019 23:27:58
 */
 
+
+-- ----------------------------
+-- Table structure for S_BEACON
+-- ----------------------------
+DROP TABLE "TEST"."S_BEACON";
+CREATE TABLE "TEST"."S_BEACON" (
+  "PID" NUMBER NOT NULL ,
+  "NAME" VARCHAR2(255 BYTE) ,
+  "SN" VARCHAR2(255 BYTE) ,
+  "CONNECTED" VARCHAR2(1 BYTE) ,
+  "STATUS" VARCHAR2(1 BYTE) ,
+  "RESEND" NUMBER ,
+  "CREATETIME" VARCHAR2(20 BYTE) 
+)
+TABLESPACE "USERS"
+LOGGING
+NOCOMPRESS
+PCTFREE 10
+INITRANS 1
+STORAGE (
+  INITIAL 65536 
+  NEXT 1048576 
+  MINEXTENTS 1
+  MAXEXTENTS 2147483645
+  BUFFER_POOL DEFAULT
+)
+PARALLEL 1
+NOCACHE
+DISABLE ROW MOVEMENT
+;
+COMMENT ON COLUMN "TEST"."S_BEACON"."NAME" IS '名称';
+COMMENT ON COLUMN "TEST"."S_BEACON"."SN" IS '序列号';
+COMMENT ON COLUMN "TEST"."S_BEACON"."CONNECTED" IS '曾连接过  Y/N';
+COMMENT ON COLUMN "TEST"."S_BEACON"."STATUS" IS '状态  Y/N';
+COMMENT ON COLUMN "TEST"."S_BEACON"."RESEND" IS '重连次数';
+COMMENT ON COLUMN "TEST"."S_BEACON"."CREATETIME" IS '创建时间';
+
+-- ----------------------------
+-- Records of S_BEACON
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for S_DATA
@@ -79,7 +119,7 @@ COMMENT ON COLUMN "TEST"."S_DATA"."CREATETIME" IS '创建时间';
 -- ----------------------------
 -- Records of S_DATA
 -- ----------------------------
-INSERT INTO "TEST"."S_DATA" VALUES ('1', 'PCM011900001', '99', '98', '99', '99', '1', '6.2', '19', '3', '27', '16', '35', '6', 'Y', 'E', '5604.051', 'N', '2936.619', NULL, NULL);
+INSERT INTO "TEST"."S_DATA" VALUES ('588502443260641313', 'PCM011900001', '99', '98', '99', '99', '1', '6.2', '19', '3', '27', '16', '35', '6', 'Y', 'E', '5604.051', 'N', '2936.619', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for S_USER
@@ -111,6 +151,11 @@ DISABLE ROW MOVEMENT
 -- Records of S_USER
 -- ----------------------------
 INSERT INTO "TEST"."S_USER" VALUES ('admin', '21232f297a57a5a743894a0e4a801fc3', '1');
+
+-- ----------------------------
+-- Primary Key structure for table S_BEACON
+-- ----------------------------
+ALTER TABLE "TEST"."S_BEACON" ADD CONSTRAINT "SYS_C0011378" PRIMARY KEY ("PID");
 
 -- ----------------------------
 -- Primary Key structure for table S_DATA

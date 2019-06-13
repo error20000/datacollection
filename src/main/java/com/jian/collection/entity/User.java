@@ -1,34 +1,25 @@
 package com.jian.collection.entity;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.jian.annotation.PrimaryKey;
 import com.jian.annotation.PrimaryKeyType;
 import com.jian.annotation.Table;
+import com.jian.collection.utils.LongJsonDeserializer;
+import com.jian.collection.utils.LongJsonSerializer;
 
 @Table("s_user")
 public class User {
 
+
+    @JsonSerialize(using = LongJsonSerializer.class)
+    @JsonDeserialize(using = LongJsonDeserializer.class)
 	private long pid;
 	@PrimaryKey(type=PrimaryKeyType.NORMAL)
 	private String username;
 	private String password;
 	
 
-	public Map<String, Object> resultSetToMap(ResultSet resultSet){
-		Map<String, Object> map = new HashMap<>();
-		try {
-			map.put("pid", resultSet.getLong("pid"));
-			map.put("username", resultSet.getString("username"));
-			map.put("password", resultSet.getString("password"));
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return map;
-	}
 	
 	public String getUsername() {
 		return username;

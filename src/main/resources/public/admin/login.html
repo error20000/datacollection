@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Data Collection</title>
+  <title>数据采集管理后台</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, minimal-ui" >
   <!-- 引入样式 -->
   <link rel="stylesheet" href="js/element-2.4.11/theme-chalk/index.css">
@@ -20,16 +20,18 @@
     </div>
   
      <el-form v-show="preloading" :model="ruleForm" :rules="rules" ref="ruleForm" label-position="left" label-width="0px" class="demo-ruleForm login-container">
-	    <h3 class="title">Data Collection</h3>
+	    <h3 class="title">数据采集账号登录</h3>
 	    <el-form-item prop="username">
-	      <el-input type="text" v-model="ruleForm.username" auto-complete="off" placeholder="username"></el-input>
+	      <el-input type="text" v-model="ruleForm.username" prefix-icon="fa fa-user" placeholder="用户名">
+	      </el-input>
 	    </el-form-item>
 	    <el-form-item prop="password">
-	      <el-input type="password" v-model="ruleForm.password" auto-complete="off" placeholder="password"></el-input>
+	      <el-input type="password" v-model="ruleForm.password" prefix-icon="fa fa-key" placeholder="密码">
+	      </el-input>
 	    </el-form-item>
 	    <!-- <el-checkbox v-model="checked" checked class="remember">remember password </el-checkbox> -->
 	    <el-form-item style="width:100%;">
-	      <el-button type="primary" style="width:100%;" @click.native.prevent="handleSubmit" :disabled="logining">Login</el-button>
+	      <el-button type="primary" style="width:100%;" @click.native.prevent="handleSubmit" :disabled="logining">登录</el-button>
 	    </el-form-item>
 	  </el-form>
 	  

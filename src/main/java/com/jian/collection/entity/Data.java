@@ -1,18 +1,19 @@
 package com.jian.collection.entity;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.jian.annotation.PrimaryKey;
 import com.jian.annotation.PrimaryKeyType;
 import com.jian.annotation.Table;
+import com.jian.collection.utils.LongJsonDeserializer;
+import com.jian.collection.utils.LongJsonSerializer;
 
 @Table("s_data")
 public class Data {
 
 	@PrimaryKey(type=PrimaryKeyType.NORMAL)
+    @JsonSerialize(using = LongJsonSerializer.class)
+    @JsonDeserialize(using = LongJsonDeserializer.class)
 	private long pid;
 	private String sn;
 	private int s1;
@@ -36,36 +37,6 @@ public class Data {
 	private String createtime;
 	
 
-	public Map<String, Object> resultSetToMap(ResultSet resultSet){
-		Map<String, Object> map = new HashMap<>();
-		try {
-			map.put("pid", resultSet.getLong("pid"));
-			map.put("sn", resultSet.getString("sn"));
-			map.put("s1", resultSet.getInt("s1"));
-			map.put("s2", resultSet.getInt("s2"));
-			map.put("s3", resultSet.getInt("s3"));
-			map.put("s4", resultSet.getInt("s4"));
-			map.put("ax", resultSet.getFloat("ax"));
-			map.put("ay", resultSet.getFloat("ay"));
-			map.put("ty", resultSet.getInt("ty"));
-			map.put("tm", resultSet.getInt("tm"));
-			map.put("td", resultSet.getInt("td"));
-			map.put("th", resultSet.getInt("th"));
-			map.put("tmm", resultSet.getInt("tmm"));
-			map.put("ts", resultSet.getInt("ts"));
-			map.put("gs", resultSet.getString("gs"));
-			map.put("dxj", resultSet.getString("dxj"));
-			map.put("jd", resultSet.getFloat("jd"));
-			map.put("nbw", resultSet.getString("nbw"));
-			map.put("wd", resultSet.getFloat("wd"));
-			map.put("act", resultSet.getString("act"));
-			map.put("createtime", resultSet.getString("createtime"));
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return map;
-	}
-	
 	public long getPid() {
 		return pid;
 	}

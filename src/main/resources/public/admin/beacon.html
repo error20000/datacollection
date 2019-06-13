@@ -29,27 +29,30 @@
 						  <el-input v-model="filters.sn" placeholder="请输入序列号" clearable></el-input>
 					</el-form-item>
 					<el-form-item>
-						<el-date-picker
-					      v-model="filters.start"
-					      type="datetime"
-					      value-format="yyyy-MM-dd HH:mm:ss"
-					      placeholder="接收开始时间">
-					    </el-date-picker>
+					    <el-select v-model="filters.connected" placeholder="连接状态">
+						    <el-option
+						      v-for="item in connectedOptions"
+						      :key="item.value"
+						      :label="item.label"
+						      :value="item.value">
+						    </el-option>
+					    </el-select>
 					</el-form-item>
 					<el-form-item>
-						<el-date-picker
-					      v-model="filters.end"
-					      type="datetime"
-					      :default-time="'23:59:59'"
-					      value-format="yyyy-MM-dd HH:mm:ss"
-					      placeholder="接收结束时间">
-					    </el-date-picker>
+					    <el-select v-model="filters.status" placeholder="航标状态">
+						    <el-option
+						      v-for="item in statusOptions"
+						      :key="item.value"
+						      :label="item.label"
+						      :value="item.value">
+						    </el-option>
+					    </el-select>
 					</el-form-item>
 					<el-form-item>
 						<el-button type="primary" @click="query" icon="fa fa-search">&nbsp;&nbsp;查询</el-button>
 						<el-button @click="reset" icon="fa fa-recycle">&nbsp;&nbsp;重置</el-button>
 						&nbsp;&nbsp;&nbsp;&nbsp;
-						<el-button type="primary" @click="getExcel">导出</el-button>
+						<el-button type="primary" @click="handleAdd">新增</el-button>
 					</el-form-item>
 				</el-form>
 			    </el-tab-pane>
@@ -67,43 +70,20 @@
 					</el-table-column>
 					<el-table-column label="序列号" prop="sn" >
 					</el-table-column>
-					<el-table-column label="接收时间" prop="createtime" >
+					<el-table-column label="名称" prop="name" >
 					</el-table-column>
-					<el-table-column label="S1" prop="s1" >
+					<el-table-column label="创建时间" prop="createtime" >
 					</el-table-column>
-					<el-table-column label="S2" prop="s2" >
+					<el-table-column label="曾连接过" prop="connected" >
 					</el-table-column>
-					<el-table-column label="S3" prop="s3" >
+					<el-table-column label="状态" prop="status" >
 					</el-table-column>
-					<el-table-column label="S4" prop="s4" >
+					<el-table-column label="重连次数" prop="resend" >
 					</el-table-column>
-					<el-table-column label="X轴角度" prop="ax" >
-					</el-table-column>
-					<el-table-column label="Y轴角度" prop="ay" >
-					</el-table-column>
-					<el-table-column label="GPS状态 " prop="gs" >
-					</el-table-column>
-					<el-table-column label="东西经" prop="dxj" >
-					</el-table-column>
-					<el-table-column label="经度" prop="jd" >
-					</el-table-column>
-					<el-table-column label="南北纬" prop="nbw" >
-					</el-table-column>
-					<el-table-column label="纬度" prop="wd" >
-					</el-table-column>
-					<el-table-column label="年" prop="ty" >
-					</el-table-column>
-					<el-table-column label="月" prop="tm" >
-					</el-table-column>
-					<el-table-column label="日" prop="td" >
-					</el-table-column>
-					<el-table-column label="时" prop="th" >
-					</el-table-column>
-					<el-table-column label="分" prop="tmm" >
-					</el-table-column>
-					<el-table-column label="秒" prop="ts" >
-					</el-table-column>
-					<el-table-column label="自动校时" prop="act" >
+					<el-table-column fixed="right" label="操作" width="120">
+						<template scope="scope">
+							<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+						</template>
 					</el-table-column>
 				</el-table>
 		
@@ -116,6 +96,23 @@
 			</el-tab-pane>
 		  </el-tabs>
 		
+		
+		<!-- add -->
+		<el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false">
+			<el-form :model="addForm"  :rules="addFormRules" ref="addForm">
+				<el-form-item label="名称" prop="name">
+					<el-input type="text" v-model="addForm.name"></el-input>
+				</el-form-item>
+				<el-form-item label="序列号" prop="sn">
+					<el-input type="text" v-model="addForm.sn"></el-input>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click="addClose">取消</el-button>
+				<el-button type="primary" @click="addSubmit" :loading="addLoading">提交</el-button>
+			</div>
+		</el-dialog>
+		
 	</section>
   </div>
 </body>
@@ -123,5 +120,5 @@
   <script src="js/vue-2.6.10/vue.js" type="text/javascript"></script>
   <script src="js/element-2.4.11/index.js" type="text/javascript"></script>
   <script type="text/javascript" src="js/global.js"></script>
-  <script type="text/javascript" src="js/data.js"></script>
+  <script type="text/javascript" src="js/beacon.js"></script>
 </html>
