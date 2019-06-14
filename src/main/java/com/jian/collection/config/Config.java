@@ -25,7 +25,14 @@ public class Config {
 	public String sso_url;
 	public String sso_module;
 
+	//socket
+	public int socket_port;
 	
+
+	@Value("${socket_port}")
+	public void setSocket_port(int socket_port) {
+		this.socket_port = socket_port;
+	}
 
 	@Value("${auto_fill_primary_key}")
 	public void setAutoFillPrimaryKey(String autoFillPrimaryKey) {
