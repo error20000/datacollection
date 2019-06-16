@@ -17,12 +17,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.jian.collection.config.Config;
+import com.jian.collection.service.DataService;
 
 @Component
 public class DelongServerSocket {
 	
 	@Autowired
 	private Config config;
+	@Autowired
+	private DataService service;
+	
 	private boolean started;
     private ServerSocket ss;
     public static ConcurrentHashMap<String, HandleSocket> handleMap = new ConcurrentHashMap<>();
@@ -55,7 +59,8 @@ public class DelongServerSocket {
             while (started) {
                 Socket socket = ss.accept();
                 socket.setKeepAlive(true);
-                HandleSocket register = HandleSocket.register(socket);
+                System.out.println(socket.getLocalSocketAddress().toString());
+                HandleSocket register = HandleSocket.register(socket, service);
                 if (register != null) {
                     pool.submit(register);
                 }

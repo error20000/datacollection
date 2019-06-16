@@ -9,13 +9,22 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jian.collection.entity.Data;
+import com.jian.collection.service.DataService;
+import com.jian.collection.utils.Utils;
+import com.jian.collection.utils.XXTEA;
+import com.jian.tools.core.DateTools;
+
 public class HandleSocket implements Runnable{
 	
 	private Socket socket;
+	private DataService service;
     private DataInputStream inputStream;
     private DataOutputStream outputStream;
     private String key;
     private Logger logger = LoggerFactory.getLogger(HandleSocket.class);
+    
+    private String secretKey = "666PCM01";
 
     /**
      * 注册socket到map里
@@ -23,16 +32,15 @@ public class HandleSocket implements Runnable{
      * @param socket
      * @return
      */
-    public static HandleSocket register(Socket socket) {
+    public static HandleSocket register(Socket socket, DataService service) {
         HandleSocket client = new HandleSocket();
         try {
             client.setSocket(socket);
+            client.setService(service);
             client.setInputStream(new DataInputStream(socket.getInputStream()));
             client.setOutputStream(new DataOutputStream(socket.getOutputStream()));
             
-            byte[] bytes = new byte[1024];
-            client.getInputStream().read(bytes);
-            client.setKey(new String(bytes, "utf-8"));
+            //key
             
             DelongServerSocket.handleMap.put(client.getKey(), client);
             return client;
@@ -80,6 +88,56 @@ public class HandleSocket implements Runnable{
         }
         return null;
     }
+    
+    public void handleReceive(){
+    	String recStr = receive();
+    	//解析接收到的字符串
+    	String dataStr = new String(XXTEA.decrypt(recStr.getBytes(), secretKey.getBytes()));
+    	String fun = "";
+		switch (fun) {
+		case "1": //查询检测数据
+			saveData(dataStr);
+			break;
+		case "101": //查询序列号
+			saveData(dataStr);
+			break;
+
+		default:
+			break;
+		}
+			
+    }
+	public void saveData(String dataStr){
+		logger.info("{} 收到消息： {}", DateTools.formatDate(), dataStr);
+		//SN>01>S1>S2>S3>S4>AX>AY>TY>TM>TD>TH>Tm>TS>GS>DXJ>JD>NBW>WD
+		//PCM011900001>01>99>98>99>99>1.0>6.2>19>03>27>16>35>06>Y>E>5604.051>N>2936.619
+		Data obj = new Data();
+		String[] str = dataStr.split(">");
+		for (int i = 0; i < str.length; i++) {
+			obj.setPid(Utils.newId());
+			obj.setCreatetime(DateTools.formatDate());
+			obj.setSn(str[0]);
+			obj.setS1(Integer.parseInt(str[2]));
+			obj.setS2(Integer.parseInt(str[3]));
+			obj.setS3(Integer.parseInt(str[4]));
+			obj.setS4(Integer.parseInt(str[5]));
+			obj.setAx(Float.parseFloat(str[6]));
+			obj.setAy(Float.parseFloat(str[7]));
+			obj.setTy(Integer.parseInt(str[8]));
+			obj.setTm(Integer.parseInt(str[9]));
+			obj.setTd(Integer.parseInt(str[10]));
+			obj.setTh(Integer.parseInt(str[11]));
+			obj.setTmm(Integer.parseInt(str[12]));
+			obj.setTs(Integer.parseInt(str[13]));
+			obj.setGs(str[14]);
+			obj.setDxj(str[15]);
+			obj.setJd(Float.parseFloat(str[16]));
+			obj.setNbw(str[17]);
+			obj.setWd(Float.parseFloat(str[18]));
+			obj.setAct("");
+		}
+		service.add(obj);
+	}
 
     /**
      * 登出操作, 关闭各种流
@@ -102,8 +160,6 @@ public class HandleSocket implements Runnable{
             }
         }
     }
-    
-    
 
     /**
      * 发送数据包, 判断数据连接状态
@@ -177,6 +233,14 @@ public class HandleSocket implements Runnable{
 
 	public void setKey(String key) {
 		this.key = key;
+	}
+
+	public DataService getService() {
+		return service;
+	}
+
+	public void setService(DataService service) {
+		this.service = service;
 	}
     
 }
