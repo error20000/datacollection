@@ -57,7 +57,7 @@ public class MainServer {
 	
 	public void handle(Socket socket){
 		try {
-			socket.setKeepAlive(true);
+			
 			// 建立好连接后，从socket中获取输入流，并建立缓冲区进行读取
 			InputStream in = socket.getInputStream();
 			byte[] bytes = new byte[1024];

@@ -31,7 +31,7 @@ public class App {
 		//启动
         applicationContext = SpringApplication.run(App.class, args);
         //socket
-        applicationContext.getBean(MainServer.class).start();
+        applicationContext.getBean(DelongServerSocket.class).start();
     }
 
 	

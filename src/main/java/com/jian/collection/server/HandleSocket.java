@@ -14,6 +14,7 @@ import com.jian.collection.service.DataService;
 import com.jian.collection.utils.Utils;
 import com.jian.collection.utils.XXTEA;
 import com.jian.tools.core.DateTools;
+import com.jian.tools.core.Tools;
 
 public class HandleSocket implements Runnable{
 	
@@ -21,10 +22,12 @@ public class HandleSocket implements Runnable{
 	private DataService service;
     private DataInputStream inputStream;
     private DataOutputStream outputStream;
+    private boolean connect = false;
     private String key;
     private Logger logger = LoggerFactory.getLogger(HandleSocket.class);
     
     private String secretKey = "666PCM01";
+    private String defSN = "666PCM01";
 
     /**
      * 注册socket到map里
@@ -39,12 +42,12 @@ public class HandleSocket implements Runnable{
             client.setService(service);
             client.setInputStream(new DataInputStream(socket.getInputStream()));
             client.setOutputStream(new DataOutputStream(socket.getOutputStream()));
+            client.setConnect(true);
             
-            //key
-            
-            DelongServerSocket.handleMap.put(client.getKey(), client);
+            //DelongServerSocket.handleMap.put(client.getKey(), client);
             return client;
         } catch (IOException e) {
+        	e.printStackTrace();
             client.logout();
         }
         return null;
@@ -63,6 +66,14 @@ public class HandleSocket implements Runnable{
             logout();
         }
     }
+    public void send(byte[] data) {
+        try {
+            outputStream.write(data);
+        } catch (IOException e) {
+        	logger.error(e.getMessage());
+            logout();
+        }
+    }
 
     /**
      * 接收数据
@@ -72,7 +83,7 @@ public class HandleSocket implements Runnable{
      */
     public String receive()  {
         try {
-			byte[] bytes = new byte[1024];
+        	/*byte[] bytes = new byte[1024];
 			int len;
 			StringBuilder sb = new StringBuilder();
 			//只有当客户端关闭它的输出流的时候，服务端才能取得结尾的-1
@@ -82,6 +93,13 @@ public class HandleSocket implements Runnable{
 			}
 			System.out.println("original: " + sb);
             return sb.toString();
+            byte[] bytes = new byte[128];
+        	inputStream.read(bytes);
+        	return new String(bytes);*/
+        	while (true) {
+				System.out.println("---->"+inputStream.read());
+				
+			}
         } catch (IOException e) {
         	logger.error(e.getMessage());
             logout();
@@ -89,24 +107,68 @@ public class HandleSocket implements Runnable{
         return null;
     }
     
-    public void handleReceive(){
-    	String recStr = receive();
-    	//解析接收到的字符串
-    	String dataStr = new String(XXTEA.decrypt(recStr.getBytes(), secretKey.getBytes()));
-    	String fun = "";
-		switch (fun) {
-		case "1": //查询检测数据
-			saveData(dataStr);
+    
+    public void handleSend(String sn, int funCode){
+    	switch (funCode) {
+		case 1:
+			handleSendQueryData(sn);
 			break;
-		case "101": //查询序列号
-			saveData(dataStr);
+		case 101:
+			handleSendQuerySN();
 			break;
 
 		default:
 			break;
 		}
-			
     }
+    
+    public void handleSendQuerySN(){
+		System.out.println("发送查询序列号指令。。。。。");
+		String str = defSN+">101";
+		byte[] data = XXTEA.encrypt(str.getBytes(), secretKey.getBytes());
+		send(data);
+    }
+    
+    public void handleSendQueryData(String sn){
+		System.out.println("发送查询检测数据指令。。。。。");
+		String str = sn +">1";
+		byte[] data = XXTEA.encrypt(str.getBytes(), secretKey.getBytes());
+		send(data);
+    }
+    
+    public void handleReceive(String recStr){
+		System.out.println("接收指令结果");
+		System.out.println("原始数据：" + recStr);
+    	//解析接收到的字符串
+    	String dataStr = new String(XXTEA.decrypt(recStr.getBytes(), secretKey.getBytes()));
+		System.out.println("解密数据：" + dataStr);
+		String[] dataArray = dataStr.split(">");
+		String funCode = dataArray[1];
+		switch (funCode) {
+		case "1": //查询检测数据
+			handleReceiveQueryData(dataArray);
+			break;
+		case "101": //查询序列号
+			handleReceiveQuerySN(dataArray);
+			break;
+
+		default:
+			break;
+		}
+    }
+    
+    public void handleReceiveQuerySN(String[] dataArray){
+		System.out.println("解析查询序列号数据...");
+		System.out.println("序列号：" + dataArray[0]);
+		System.out.println("funCode：" + dataArray[1]);
+		System.out.println("Flag：" + dataArray[2]);
+    } 
+    public void handleReceiveQueryData(String[] dataArray){
+		System.out.println("解析查询检测数据...");
+		System.out.println("序列号：" + dataArray[0]);
+		System.out.println("funCode：" + dataArray[1]);
+    }
+    
 	public void saveData(String dataStr){
 		logger.info("{} 收到消息： {}", DateTools.formatDate(), dataStr);
 		//SN>01>S1>S2>S3>S4>AX>AY>TY>TM>TD>TH>Tm>TS>GS>DXJ>JD>NBW>WD
@@ -178,8 +240,8 @@ public class HandleSocket implements Runnable{
     @Override
     public void run() {
         // 每过5秒连接一次客户端
-        while (true) {
-            try {
+        while (connect) {
+           /* try {
                 TimeUnit.SECONDS.sleep(5);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -188,6 +250,13 @@ public class HandleSocket implements Runnable{
                 System.out.println("socket is closed.");
                 logout();
                 break;
+            }*/
+        	handleSend("", 1);
+        	String str = receive();
+            if(Tools.isNullOrEmpty(str)){
+            	handleSend("", 1);
+            }else{
+            	handleReceive(str);
             }
         }
 
@@ -241,6 +310,14 @@ public class HandleSocket implements Runnable{
 
 	public void setService(DataService service) {
 		this.service = service;
+	}
+
+	public boolean isConnect() {
+		return connect;
+	}
+
+	public void setConnect(boolean connect) {
+		this.connect = connect;
 	}
     
 }
