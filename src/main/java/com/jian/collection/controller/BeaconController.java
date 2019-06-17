@@ -17,6 +17,7 @@ import com.jian.collection.service.BeaconService;
 import com.jian.collection.utils.Utils;
 import com.jian.tools.core.DateTools;
 import com.jian.tools.core.JsonTools;
+import com.jian.tools.core.MapTools;
 import com.jian.tools.core.ResultKey;
 import com.jian.tools.core.ResultTools;
 import com.jian.tools.core.Tips;
@@ -73,6 +74,55 @@ public class BeaconController extends BaseController<Beacon> {
 		obj.setStatus("N");
 		obj.setCreatetime(DateTools.formatDate());
 		int res = service.add(obj);
+		if(res > 0){
+			return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, res).toJSONString();
+		}else{
+			return ResultTools.custom(Tips.ERROR0).toJSONString();
+		}
+	}
+	
+	@Override
+	@RequestMapping("/update")
+    @ResponseBody
+	public String update(HttpServletRequest req) {
+		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//sign
+		vMap = verifySign(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//权限
+		vMap = verifyAuth(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		
+		//登录用户
+		User user = getLoginUser(req);
+		if(user == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
+		/*if(user.getAdmin() != 1){
+			return ResultTools.custom(Tips.ERROR201).toJSONString();
+		}*/
+		
+
+		//参数
+		String pid = Tools.getReqParamSafe(req, "pid");
+		String name = Tools.getReqParamSafe(req, "name");
+		vMap = Tools.verifyParam("pid", pid, 0, 0);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//保存
+		Beacon obj = service.findOne(MapTools.custom().put("pid", pid).build());
+		obj.setName(name);
+		int res = service.modify(obj);
 		if(res > 0){
 			return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, res).toJSONString();
 		}else{
@@ -183,10 +233,6 @@ public class BeaconController extends BaseController<Beacon> {
 		
 		List<Beacon> list = service.findPage(condition, start, Tools.parseInt(rows));
 		long total = service.size(condition);
-		for (Beacon beacon : list) {
-			System.out.println(beacon.getPid());
-			System.out.println(ResultTools.custom(Tips.ERROR1).put(ResultKey.TOTAL, total).put(ResultKey.DATA, list).toJSONString());
-		}
         return ResultTools.custom(Tips.ERROR1).put(ResultKey.TOTAL, total).put(ResultKey.DATA, list).toJSONString();
 	}
 	

@@ -15,6 +15,7 @@ public class Data {
     @JsonSerialize(using = LongJsonSerializer.class)
     @JsonDeserialize(using = LongJsonDeserializer.class)
 	private long pid;
+	private int af;
 	private String sn;
 	private int s1;
 	private int s2;
@@ -162,6 +163,12 @@ public class Data {
 	}
 	public void setCreatetime(String createtime) {
 		this.createtime = createtime;
+	}
+	public int getAf() {
+		return af;
+	}
+	public void setAf(int af) {
+		this.af = af;
 	}
 	
 }

@@ -211,7 +211,7 @@ public class DataController extends BaseController<Data> {
             HSSFSheet sheet = workbook.createSheet("sheet");
 
 			//设置表头
-			String head = "Pid,序列号,接收时间,S1,S2,S3,S4,X轴角度,Y轴角度,GPS状态,东西经,经度,南北纬,纬度,年,月,日,时,分,秒,自动校时";
+			String head = "Pid,序列号,接收时间,报警标识,S1,S2,S3,S4,X轴角度,Y轴角度,GPS状态,东西经,经度,南北纬,纬度,年,月,日,时,分,秒,自动校时";
 			String[] heads = head.split(",");
             HSSFRow row = sheet.createRow(0);
             //设置列宽，setColumnWidth的第二个参数要乘以256，这个参数的单位是1/256个字符宽度
@@ -239,24 +239,25 @@ public class DataController extends BaseController<Data> {
 				rowc.createCell(0).setCellValue(node.getPid()+"");
 				rowc.createCell(1).setCellValue(node.getSn());
 				rowc.createCell(2).setCellValue(node.getCreatetime());
-				rowc.createCell(3).setCellValue(node.getS1());
-				rowc.createCell(4).setCellValue(node.getS2());
-				rowc.createCell(5).setCellValue(node.getS3());
-				rowc.createCell(6).setCellValue(node.getS4());
-				rowc.createCell(7).setCellValue(node.getAx()+"");
-				rowc.createCell(8).setCellValue(node.getAy()+"");
-				rowc.createCell(9).setCellValue(node.getGs());
-				rowc.createCell(10).setCellValue(node.getDxj());
-				rowc.createCell(11).setCellValue(node.getJd()+"");
-				rowc.createCell(12).setCellValue(node.getNbw());
-				rowc.createCell(13).setCellValue(node.getWd()+"");
-				rowc.createCell(14).setCellValue(node.getTy());
-				rowc.createCell(15).setCellValue(node.getTm());
-				rowc.createCell(16).setCellValue(node.getTd());
-				rowc.createCell(17).setCellValue(node.getTh());
-				rowc.createCell(18).setCellValue(node.getTmm());
-				rowc.createCell(19).setCellValue(node.getTs());
-				rowc.createCell(20).setCellValue(node.getAct());
+				rowc.createCell(3).setCellValue(node.getAf());
+				rowc.createCell(4).setCellValue(node.getS1());
+				rowc.createCell(5).setCellValue(node.getS2());
+				rowc.createCell(6).setCellValue(node.getS3());
+				rowc.createCell(7).setCellValue(node.getS4());
+				rowc.createCell(8).setCellValue(node.getAx()+"");
+				rowc.createCell(9).setCellValue(node.getAy()+"");
+				rowc.createCell(10).setCellValue(node.getGs());
+				rowc.createCell(11).setCellValue(node.getDxj());
+				rowc.createCell(12).setCellValue(node.getJd()+"");
+				rowc.createCell(13).setCellValue(node.getNbw());
+				rowc.createCell(14).setCellValue(node.getWd()+"");
+				rowc.createCell(15).setCellValue(node.getTy());
+				rowc.createCell(16).setCellValue(node.getTm());
+				rowc.createCell(17).setCellValue(node.getTd());
+				rowc.createCell(18).setCellValue(node.getTh());
+				rowc.createCell(19).setCellValue(node.getTmm());
+				rowc.createCell(20).setCellValue(node.getTs());
+				rowc.createCell(21).setCellValue(node.getAct());
 			}
 			workbook.write(toClient);
 			workbook.close();

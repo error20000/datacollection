@@ -11,7 +11,7 @@
  Target Server Version : 110200
  File Encoding         : 65001
 
- Date: 13/06/2019 23:27:58
+ Date: 17/06/2019 23:45:16
 */
 
 
@@ -26,7 +26,8 @@ CREATE TABLE "TEST"."S_BEACON" (
   "CONNECTED" VARCHAR2(1 BYTE) ,
   "STATUS" VARCHAR2(1 BYTE) ,
   "RESEND" NUMBER ,
-  "CREATETIME" VARCHAR2(20 BYTE) 
+  "CREATETIME" VARCHAR2(20 BYTE) ,
+  "ALARM" NUMBER 
 )
 TABLESPACE "USERS"
 LOGGING
@@ -50,6 +51,7 @@ COMMENT ON COLUMN "TEST"."S_BEACON"."CONNECTED" IS '曾连接过  Y/N';
 COMMENT ON COLUMN "TEST"."S_BEACON"."STATUS" IS '状态  Y/N';
 COMMENT ON COLUMN "TEST"."S_BEACON"."RESEND" IS '重连次数';
 COMMENT ON COLUMN "TEST"."S_BEACON"."CREATETIME" IS '创建时间';
+COMMENT ON COLUMN "TEST"."S_BEACON"."ALARM" IS '报警状态';
 
 -- ----------------------------
 -- Records of S_BEACON
@@ -80,7 +82,8 @@ CREATE TABLE "TEST"."S_DATA" (
   "NBW" VARCHAR2(1 BYTE) ,
   "WD" NUMBER ,
   "ACT" VARCHAR2(1 BYTE) ,
-  "CREATETIME" VARCHAR2(20 BYTE) 
+  "CREATETIME" VARCHAR2(20 BYTE) ,
+  "AF" NUMBER 
 )
 TABLESPACE "USERS"
 LOGGING
@@ -115,11 +118,11 @@ COMMENT ON COLUMN "TEST"."S_DATA"."NBW" IS '南北纬  S/N';
 COMMENT ON COLUMN "TEST"."S_DATA"."WD" IS '纬度  度分格式';
 COMMENT ON COLUMN "TEST"."S_DATA"."ACT" IS '自动校时  Y/N';
 COMMENT ON COLUMN "TEST"."S_DATA"."CREATETIME" IS '创建时间';
+COMMENT ON COLUMN "TEST"."S_DATA"."AF" IS '报警标志';
 
 -- ----------------------------
 -- Records of S_DATA
 -- ----------------------------
-INSERT INTO "TEST"."S_DATA" VALUES ('588502443260641313', 'PCM011900001', '99', '98', '99', '99', '1', '6.2', '19', '3', '27', '16', '35', '6', 'Y', 'E', '5604.051', 'N', '2936.619', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for S_USER

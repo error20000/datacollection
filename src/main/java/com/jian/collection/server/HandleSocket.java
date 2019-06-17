@@ -4,30 +4,32 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jian.collection.entity.Beacon;
 import com.jian.collection.entity.Data;
+import com.jian.collection.service.BeaconService;
 import com.jian.collection.service.DataService;
 import com.jian.collection.utils.Utils;
 import com.jian.collection.utils.XXTEA;
 import com.jian.tools.core.DateTools;
-import com.jian.tools.core.Tools;
+import com.jian.tools.core.MapTools;
 
 public class HandleSocket implements Runnable{
 	
 	private Socket socket;
-	private DataService service;
+	private DataService dservice;
+	private BeaconService bservice;
     private DataInputStream inputStream;
     private DataOutputStream outputStream;
     private boolean connect = false;
-    private String key;
-    private Logger logger = LoggerFactory.getLogger(HandleSocket.class);
-    
+    private String sn = "PCM01000000";
     private String secretKey = "666PCM01";
-    private String defSN = "666PCM01";
+    
+    private Logger logger = LoggerFactory.getLogger(HandleSocket.class);
+
 
     /**
      * 注册socket到map里
@@ -35,19 +37,17 @@ public class HandleSocket implements Runnable{
      * @param socket
      * @return
      */
-    public static HandleSocket register(Socket socket, DataService service) {
+    public static HandleSocket register(Socket socket, DataService dservice, BeaconService bservice) {
         HandleSocket client = new HandleSocket();
         try {
             client.setSocket(socket);
-            client.setService(service);
+            client.setDservice(dservice);
+            client.setBservice(bservice);
             client.setInputStream(new DataInputStream(socket.getInputStream()));
             client.setOutputStream(new DataOutputStream(socket.getOutputStream()));
             client.setConnect(true);
-            
-            //DelongServerSocket.handleMap.put(client.getKey(), client);
             return client;
         } catch (IOException e) {
-        	e.printStackTrace();
             client.logout();
         }
         return null;
@@ -59,13 +59,9 @@ public class HandleSocket implements Runnable{
      * @param str
      */
     public void send(String str) {
-        try {
-            outputStream.write(str.getBytes());
-        } catch (IOException e) {
-        	logger.error(e.getMessage());
-            logout();
-        }
+    	send(str.getBytes());
     }
+    
     public void send(byte[] data) {
         try {
             outputStream.write(data);
@@ -83,22 +79,10 @@ public class HandleSocket implements Runnable{
      */
     public String receive()  {
         try {
-        	/*byte[] bytes = new byte[1024];
-			int len;
-			StringBuilder sb = new StringBuilder();
-			//只有当客户端关闭它的输出流的时候，服务端才能取得结尾的-1
+        	byte[] bytes = new byte[128];
+			int len = 0;
 			while ((len = inputStream.read(bytes)) != -1) {
-				// 注意指定编码格式，发送方和接收方一定要统一，建议使用UTF-8
-				sb.append(new String(bytes, 0, len, "UTF-8"));
-			}
-			System.out.println("original: " + sb);
-            return sb.toString();
-            byte[] bytes = new byte[128];
-        	inputStream.read(bytes);
-        	return new String(bytes);*/
-        	while (true) {
-				System.out.println("---->"+inputStream.read());
-				
+				handleReceive(new String(bytes));
 			}
         } catch (IOException e) {
         	logger.error(e.getMessage());
@@ -114,7 +98,7 @@ public class HandleSocket implements Runnable{
 			handleSendQueryData(sn);
 			break;
 		case 101:
-			handleSendQuerySN();
+			handleSendQuerySN(sn);
 			break;
 
 		default:
@@ -122,9 +106,9 @@ public class HandleSocket implements Runnable{
 		}
     }
     
-    public void handleSendQuerySN(){
+    public void handleSendQuerySN(String sn){
 		System.out.println("发送查询序列号指令。。。。。");
-		String str = defSN+">101";
+		String str = sn+">101";
 		byte[] data = XXTEA.encrypt(str.getBytes(), secretKey.getBytes());
 		send(data);
     }
@@ -137,12 +121,16 @@ public class HandleSocket implements Runnable{
     }
     
     public void handleReceive(String recStr){
+    	
 		System.out.println("接收指令结果");
 		System.out.println("原始数据：" + recStr);
     	//解析接收到的字符串
     	String dataStr = new String(XXTEA.decrypt(recStr.getBytes(), secretKey.getBytes()));
 		System.out.println("解密数据：" + dataStr);
 		String[] dataArray = dataStr.split(">");
+		if(dataArray.length < 2) {
+			return;
+		}
 		String funCode = dataArray[1];
 		switch (funCode) {
 		case "1": //查询检测数据
@@ -162,6 +150,27 @@ public class HandleSocket implements Runnable{
 		System.out.println("序列号：" + dataArray[0]);
 		System.out.println("funCode：" + dataArray[1]);
 		System.out.println("Flag：" + dataArray[2]);
+		
+		sn = dataArray[0];
+		//存入map
+		DelongServerSocket.handleMap.put(sn, this);
+		//修改数据库
+		Beacon beacon = bservice.findOne(MapTools.custom().put("sn", sn).build());
+		if(beacon == null) {
+			beacon = new Beacon();
+			beacon.setName("");
+			beacon.setConnected("Y");
+			beacon.setSn(sn);
+			beacon.setCreatetime(DateTools.formatDate());
+			beacon.setPid(Utils.newId());
+			beacon.setStatus("Y");
+			beacon.setResend(0);
+			bservice.add(beacon);
+		}else {
+			beacon.setConnected("Y");
+			beacon.setStatus("Y");
+			bservice.modify(beacon);
+		}
     } 
     public void handleReceiveQueryData(String[] dataArray){
 		System.out.println("解析查询检测数据...");
@@ -171,43 +180,52 @@ public class HandleSocket implements Runnable{
     
 	public void saveData(String dataStr){
 		logger.info("{} 收到消息： {}", DateTools.formatDate(), dataStr);
-		//SN>01>S1>S2>S3>S4>AX>AY>TY>TM>TD>TH>Tm>TS>GS>DXJ>JD>NBW>WD
-		//PCM011900001>01>99>98>99>99>1.0>6.2>19>03>27>16>35>06>Y>E>5604.051>N>2936.619
+		//SN>1>AF>S1>S2>S3>S4>AX>AY>TY>TM>TD>TH>Tm>TS>GS>DXJ>JD>NBW>WD
+		//PCM011900001>1>0>99>98>99>99>1.0>6.2>19>03>27>16>35>06>Y>E>5604.051>N>2936.619
 		Data obj = new Data();
 		String[] str = dataStr.split(">");
 		for (int i = 0; i < str.length; i++) {
 			obj.setPid(Utils.newId());
 			obj.setCreatetime(DateTools.formatDate());
 			obj.setSn(str[0]);
-			obj.setS1(Integer.parseInt(str[2]));
-			obj.setS2(Integer.parseInt(str[3]));
-			obj.setS3(Integer.parseInt(str[4]));
-			obj.setS4(Integer.parseInt(str[5]));
-			obj.setAx(Float.parseFloat(str[6]));
-			obj.setAy(Float.parseFloat(str[7]));
-			obj.setTy(Integer.parseInt(str[8]));
-			obj.setTm(Integer.parseInt(str[9]));
-			obj.setTd(Integer.parseInt(str[10]));
-			obj.setTh(Integer.parseInt(str[11]));
-			obj.setTmm(Integer.parseInt(str[12]));
-			obj.setTs(Integer.parseInt(str[13]));
-			obj.setGs(str[14]);
-			obj.setDxj(str[15]);
-			obj.setJd(Float.parseFloat(str[16]));
-			obj.setNbw(str[17]);
-			obj.setWd(Float.parseFloat(str[18]));
+			obj.setAf(Integer.parseInt(str[2]));
+			obj.setS1(Integer.parseInt(str[3]));
+			obj.setS2(Integer.parseInt(str[4]));
+			obj.setS3(Integer.parseInt(str[5]));
+			obj.setS4(Integer.parseInt(str[6]));
+			obj.setAx(Float.parseFloat(str[7]));
+			obj.setAy(Float.parseFloat(str[8]));
+			obj.setTy(Integer.parseInt(str[9]));
+			obj.setTm(Integer.parseInt(str[10]));
+			obj.setTd(Integer.parseInt(str[11]));
+			obj.setTh(Integer.parseInt(str[12]));
+			obj.setTmm(Integer.parseInt(str[13]));
+			obj.setTs(Integer.parseInt(str[14]));
+			obj.setGs(str[15]);
+			obj.setDxj(str[16]);
+			obj.setJd(Float.parseFloat(str[17]));
+			obj.setNbw(str[18]);
+			obj.setWd(Float.parseFloat(str[19]));
 			obj.setAct("");
 		}
-		service.add(obj);
+		dservice.add(obj);
 	}
 
     /**
      * 登出操作, 关闭各种流
      */
     public void logout() {
-        if (DelongServerSocket.handleMap.containsKey(key)) {
-            DelongServerSocket.handleMap.remove(key);
+        if (DelongServerSocket.handleMap.containsKey(sn)) {
+            DelongServerSocket.handleMap.remove(sn);
         }
+        System.out.println("socket 退出。");
+        connect = false;
+        //修改数据库
+  		Beacon beacon = bservice.findOne(MapTools.custom().put("sn", sn).build());
+  		if(beacon != null) {
+  			beacon.setStatus("N");
+  			bservice.modify(beacon);
+  		}
 
         try {
             socket.shutdownOutput();
@@ -239,25 +257,14 @@ public class HandleSocket implements Runnable{
 
     @Override
     public void run() {
-        // 每过5秒连接一次客户端
+        
         while (connect) {
-           /* try {
-                TimeUnit.SECONDS.sleep(5);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if (isSocketClosed()) {
-                System.out.println("socket is closed.");
-                logout();
-                break;
-            }*/
-        	handleSend("", 1);
-        	String str = receive();
-            if(Tools.isNullOrEmpty(str)){
-            	handleSend("", 1);
-            }else{
-            	handleReceive(str);
-            }
+        	//查询序列号
+        	if("PCM01000000".equals(sn)) {
+        		handleSend(sn, 101);
+        	}
+        	//监听
+        	receive();
         }
 
     }
@@ -268,7 +275,7 @@ public class HandleSocket implements Runnable{
                 "socket=" + socket +
                 ", inputStream=" + inputStream +
                 ", outputStream=" + outputStream +
-                ", key='" + key + '\'' +
+                ", sn='" + sn + '\'' +
                 '}';
     }
 
@@ -296,28 +303,36 @@ public class HandleSocket implements Runnable{
 		this.outputStream = outputStream;
 	}
 
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
-	}
-
-	public DataService getService() {
-		return service;
-	}
-
-	public void setService(DataService service) {
-		this.service = service;
-	}
-
 	public boolean isConnect() {
 		return connect;
 	}
 
 	public void setConnect(boolean connect) {
 		this.connect = connect;
+	}
+
+	public DataService getDservice() {
+		return dservice;
+	}
+
+	public void setDservice(DataService dservice) {
+		this.dservice = dservice;
+	}
+
+	public BeaconService getBservice() {
+		return bservice;
+	}
+
+	public void setBservice(BeaconService bservice) {
+		this.bservice = bservice;
+	}
+
+	public String getSn() {
+		return sn;
+	}
+
+	public void setSn(String sn) {
+		this.sn = sn;
 	}
     
 }

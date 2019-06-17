@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.jian.collection.config.Config;
+import com.jian.collection.service.BeaconService;
 import com.jian.collection.service.DataService;
 
 @Component
@@ -23,7 +24,9 @@ public class DelongServerSocket {
 	@Autowired
 	private Config config;
 	@Autowired
-	private DataService service;
+	private DataService dService;
+	@Autowired
+	private BeaconService bService;
 	
 	private boolean started;
     private ServerSocket ss;
@@ -58,13 +61,14 @@ public class DelongServerSocket {
                 Socket socket = ss.accept();
                 socket.setKeepAlive(true);
                 System.out.println(socket.getLocalSocketAddress().toString());
-                HandleSocket register = HandleSocket.register(socket, service);
+                HandleSocket register = HandleSocket.register(socket, dService, bService);
                 if (register != null) {
                     pool.submit(register);
                 }
             }
         } catch (IOException e) {
         	logger.error(e.getMessage());
+        	e.printStackTrace();
         }
     }
 }

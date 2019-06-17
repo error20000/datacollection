@@ -21,77 +21,56 @@ public class Beacon {
 	private String status;
 	private int resend;
 	private String createtime;
+	private int alarm;
 	
-
-
+	
 	public long getPid() {
 		return pid;
 	}
-
-
 	public void setPid(long pid) {
 		this.pid = pid;
 	}
-
-
 	public String getName() {
 		return name;
 	}
-
-
 	public void setName(String name) {
 		this.name = name;
 	}
-
-
 	public String getSn() {
 		return sn;
 	}
-
-
 	public void setSn(String sn) {
 		this.sn = sn;
 	}
-
-
 	public String getConnected() {
 		return connected;
 	}
-
-
 	public void setConnected(String connected) {
 		this.connected = connected;
 	}
-
-
 	public String getStatus() {
 		return status;
 	}
-
-
 	public void setStatus(String status) {
 		this.status = status;
 	}
-
-
 	public int getResend() {
 		return resend;
 	}
-
-
 	public void setResend(int resend) {
 		this.resend = resend;
 	}
-
-
 	public String getCreatetime() {
 		return createtime;
 	}
-
-
 	public void setCreatetime(String createtime) {
 		this.createtime = createtime;
 	}
-	
+	public int getAlarm() {
+		return alarm;
+	}
+	public void setAlarm(int alarm) {
+		this.alarm = alarm;
+	}
 	
 }

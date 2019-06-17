@@ -2,6 +2,7 @@ var baseUrl = parent.window.baseUrl || '../';
 
 var queryUrl = baseUrl + "api/beacon/findPage";
 var addUrl = baseUrl + "api/beacon/add";
+var modUrl = baseUrl + "api/beacon/update";
 var delUrl = baseUrl + "api/beacon/delete";
 
 var ajaxReq = parent.window.ajaxReq || "";
@@ -14,6 +15,7 @@ var myvue = new Vue({
 	    		activeTab: 'table',
 				filters: {
 					user: '',
+					alarm: '',
 					connected: '',
 					status: ''
 				},
@@ -25,12 +27,21 @@ var myvue = new Vue({
 				sels: [],
 				preloading: false,
 				connectedOptions: [
-					{value: "Y", label: "已连接"},
+					{value: "Y", label: "曾连接"},
 					{value: "N", label: "未连接"},
 				],
 				statusOptions: [
 					{value: "Y", label: "正常"},
 					{value: "N", label: "异常"},
+				],
+				alarmOptions: [
+					{value: "0", label: "正常"},
+					{value: "1", label: "距离S1报警"},
+					{value: "2", label: "距离S2报警"},
+					{value: "3", label: "距离S3报警"},
+					{value: "4", label: "距离S4报警"},
+					{value: "5", label: "角度AX报警"},
+					{value: "6", label: "角度AY报警"},
 				],
 
 				//add
@@ -42,6 +53,11 @@ var myvue = new Vue({
 		                { required: true, message: '请输入序列号.', trigger: 'blur' },
 		              ]
 				},
+				//edit
+				editFormVisible: false,
+				editLoading: false,
+				editForm: {},
+				editFormRules: {},
 				
 				user: ''
 			}
@@ -96,6 +112,7 @@ var myvue = new Vue({
 				};
 				this.getList();
 			},
+			//add
 			handleAdd: function(){
 				this.addFormVisible = true;
 				this.addForm = {
@@ -142,6 +159,35 @@ var myvue = new Vue({
 					});
 					
 				}).catch(() => {
+				});
+			},
+			//edit
+			handleEdit: function (index, row) {
+				this.editFormVisible = true;
+				this.editForm = Object.assign({}, row);
+			},
+			editClose: function () {
+				this.editFormVisible = false;
+				this.editLoading = false;
+				this.$refs.editForm.resetFields();
+			},
+			editSubmit: function () {
+				this.$refs.editForm.validate((valid) => {
+					if (valid) {
+						this.$confirm('确认提交吗?', '提示', {}).then(() => {
+							var self = this;
+							this.editLoading = true;
+							var params = Object.assign({}, this.editForm);
+							ajaxReq(modUrl, params, function(res){
+								self.editLoading = false;
+								self.handleResOperate(res, function(){
+									self.editFormVisible = false;
+									self.getList();
+								});
+							});
+							
+						});
+					}
 				});
 			},
 			
