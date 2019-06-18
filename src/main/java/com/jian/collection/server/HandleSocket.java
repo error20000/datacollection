@@ -125,7 +125,7 @@ public class HandleSocket implements Runnable{
 		System.out.println("接收指令结果");
 		System.out.println("原始数据：" + recStr);
     	//解析接收到的字符串
-    	String dataStr = new String(XXTEA.decrypt(recStr.getBytes(), secretKey.getBytes()));
+    	String dataStr = new String(XXTEA.decrypt(recStr.getBytes(), secretKey.getBytes())).trim();
 		System.out.println("解密数据：" + dataStr);
 		String[] dataArray = dataStr.split(">");
 		if(dataArray.length < 2) {

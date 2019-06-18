@@ -10,6 +10,11 @@ public class XXTEA {
 	 * @return
 	 */
 	public static byte[] encrypt(byte[] data, byte[] key) {
+		if(data.length < 128){
+			byte[] temp = new byte[128];
+			System.arraycopy(data, 0, temp, 0, data.length);
+			data = temp;
+		}
 		return unsignedShortToByte(
 				encrypt(byteToUnsignedShort(data), byteToUnsignedShort(key)));
 	}
