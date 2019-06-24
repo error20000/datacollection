@@ -25,8 +25,9 @@ public class HandleSocket implements Runnable{
     private DataInputStream inputStream;
     private DataOutputStream outputStream;
     private boolean connect = false;
-    private String sn = "PCM01000000";
+    private String sn = "PCM010000000";
     private String secretKey = "666PCM01";
+    private boolean isOraginalSN = true;
     
     private Logger logger = LoggerFactory.getLogger(HandleSocket.class);
 
@@ -83,6 +84,10 @@ public class HandleSocket implements Runnable{
 			int len = 0;
 			while ((len = inputStream.read(bytes)) != -1) {
 				handleReceive(new String(bytes));
+				
+				if(isOraginalSN) {
+					handleSend(sn, 101); 
+				}
 			}
         } catch (IOException e) {
         	logger.error(e.getMessage());
@@ -152,6 +157,7 @@ public class HandleSocket implements Runnable{
 		System.out.println("Flag：" + dataArray[2]);
 		
 		sn = dataArray[0];
+		isOraginalSN = false;
 		//存入map
 		DelongServerSocket.handleMap.put(sn, this);
 		//修改数据库
@@ -259,10 +265,12 @@ public class HandleSocket implements Runnable{
     public void run() {
         
         while (connect) {
+        	
         	//查询序列号
-        	if("PCM01000000".equals(sn)) {
-        		handleSend(sn, 101);
-        	}
+			if(isOraginalSN) {
+				handleSend(sn, 101); 
+			}
+			 
         	//监听
         	receive();
         }

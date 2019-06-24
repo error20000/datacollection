@@ -60,7 +60,16 @@ public class DelongServerSocket {
             while (started) {
                 Socket socket = ss.accept();
                 socket.setKeepAlive(true);
+                socket.setSoTimeout(24*3600*1000); //设置一天的超时时间，防止程序永久挂起。
+                System.out.println("===========================客户端信息==================================");
                 System.out.println(socket.getLocalSocketAddress().toString());
+                System.out.println(socket.getInetAddress().toString());
+                System.out.println(socket.getInetAddress().getHostAddress());
+                System.out.println(socket.getLocalAddress().toString()); 
+                System.out.println(socket.getLocalAddress().getHostAddress()); 
+                System.out.println(socket.getRemoteSocketAddress().toString());
+                System.out.println(socket.getLocalSocketAddress().toString());
+                System.out.println("=============================================================");
                 HandleSocket register = HandleSocket.register(socket, dService, bService);
                 if (register != null) {
                     pool.submit(register);
