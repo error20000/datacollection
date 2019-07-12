@@ -4,6 +4,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,8 @@ public class HandleSocket implements Runnable{
     private String sn = "PCM010000000";
     private String secretKey = "666PCM01";
     private boolean isOraginalSN = true;
+    private int tryTime = 10;
+    private int sleepTime = 60 * 1000; //采集频率一分钟一次
     
     private Logger logger = LoggerFactory.getLogger(HandleSocket.class);
 
@@ -79,14 +83,23 @@ public class HandleSocket implements Runnable{
      * @throws IOException
      */
     public String receive()  {
+		System.out.println("监听接收数据。。。。。");
         try {
         	byte[] bytes = new byte[128];
 			int len = 0;
 			while ((len = inputStream.read(bytes)) != -1) {
-				handleReceive(new String(bytes));
 				
-				if(isOraginalSN) {
-					handleSend(sn, 101); 
+				handleReceive(bytes);
+
+	        	try {
+					Thread.sleep(sleepTime);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+	        	
+	        	//发送查询检测数据指令
+				if(!isOraginalSN) {
+					handleSend(sn, 1); 
 				}
 			}
         } catch (IOException e) {
@@ -125,12 +138,13 @@ public class HandleSocket implements Runnable{
 		send(data);
     }
     
-    public void handleReceive(String recStr){
+    
+    public void handleReceive(byte[] recData){
     	
 		System.out.println("接收指令结果");
-		System.out.println("原始数据：" + recStr);
+		System.out.println("原始数据：" + recData);
     	//解析接收到的字符串
-    	String dataStr = new String(XXTEA.decrypt(recStr.getBytes(), secretKey.getBytes())).trim();
+    	String dataStr = new String(XXTEA.decrypt(recData, secretKey.getBytes())).trim();
 		System.out.println("解密数据：" + dataStr);
 		String[] dataArray = dataStr.split(">");
 		if(dataArray.length < 2) {
@@ -155,6 +169,10 @@ public class HandleSocket implements Runnable{
 		System.out.println("序列号：" + dataArray[0]);
 		System.out.println("funCode：" + dataArray[1]);
 		System.out.println("Flag：" + dataArray[2]);
+		
+		if(!"OK".equalsIgnoreCase(dataArray[2])) {
+			return;
+		}
 		
 		sn = dataArray[0];
 		isOraginalSN = false;
@@ -182,14 +200,14 @@ public class HandleSocket implements Runnable{
 		System.out.println("解析查询检测数据...");
 		System.out.println("序列号：" + dataArray[0]);
 		System.out.println("funCode：" + dataArray[1]);
+		saveData(dataArray);
     }
     
-	public void saveData(String dataStr){
-		logger.info("{} 收到消息： {}", DateTools.formatDate(), dataStr);
+	public void saveData(String[] str){
 		//SN>1>AF>S1>S2>S3>S4>AX>AY>TY>TM>TD>TH>Tm>TS>GS>DXJ>JD>NBW>WD
 		//PCM011900001>1>0>99>98>99>99>1.0>6.2>19>03>27>16>35>06>Y>E>5604.051>N>2936.619
+		logger.info("{} 收到消息： {}", DateTools.formatDate(), Arrays.stream(str).collect(Collectors.joining(">")));
 		Data obj = new Data();
-		String[] str = dataStr.split(">");
 		for (int i = 0; i < str.length; i++) {
 			obj.setPid(Utils.newId());
 			obj.setCreatetime(DateTools.formatDate());
@@ -267,9 +285,29 @@ public class HandleSocket implements Runnable{
         while (connect) {
         	
         	//查询序列号
-			if(isOraginalSN) {
-				handleSend(sn, 101); 
-			}
+			new Thread(new Runnable() {
+				
+				@Override
+				public void run() {
+
+		        	try {
+						Thread.sleep(10 * 1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+		        	
+					if(isOraginalSN) {
+						handleSend(sn, 101); 
+						//成功后退出
+						Thread.currentThread().interrupt();
+					}
+					//失败次数后，自动退出。
+		        	tryTime--;
+		        	if(tryTime <= 0) {
+		        		logout();
+		        	}
+				}
+			}).start();
 			 
         	//监听
         	receive();
