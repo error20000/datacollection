@@ -1,13 +1,11 @@
 package com.jian.collection;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 
 import com.jian.collection.server.DelongServerSocket;
-import com.jian.collection.server.MainServer;
 
 @SpringBootApplication(scanBasePackages="com.jian")
 @EnableAutoConfiguration

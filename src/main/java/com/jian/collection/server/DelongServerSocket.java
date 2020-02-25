@@ -70,7 +70,7 @@ public class DelongServerSocket {
                 System.out.println(socket.getRemoteSocketAddress().toString());
                 System.out.println(socket.getLocalSocketAddress().toString());
                 System.out.println("=============================================================");
-                HandleSocket register = HandleSocket.register(socket, dService, bService);
+                HandleSocket register = HandleSocket.register(socket, config, dService, bService);
                 if (register != null) {
                     pool.submit(register);
                 }

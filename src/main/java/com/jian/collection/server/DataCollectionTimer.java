@@ -10,9 +10,11 @@ public class DataCollectionTimer {
 	
 	private boolean timerStart = false;
 	private Timer timer = null;
-	private long delayTime = 10 * 60 * 1000;
-	private long runTime = 10 * 60 * 1000;
+	private long delayTime = 0;
+	private long runTime = 60 * 1000;
 	private Logger logger = LoggerFactory.getLogger(DataCollectionTimer.class);
+	
+	
 	
 	public void close(){
 		if(timer != null){

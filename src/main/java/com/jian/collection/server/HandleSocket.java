@@ -2,14 +2,22 @@ package com.jian.collection.server;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jian.collection.App;
+import com.jian.collection.config.Config;
 import com.jian.collection.entity.Beacon;
 import com.jian.collection.entity.Data;
 import com.jian.collection.service.BeaconService;
@@ -18,10 +26,12 @@ import com.jian.collection.utils.Utils;
 import com.jian.collection.utils.XXTEA;
 import com.jian.tools.core.DateTools;
 import com.jian.tools.core.MapTools;
+import com.jian.tools.core.Tools;
 
 public class HandleSocket implements Runnable{
 	
 	private Socket socket;
+    private Config config;
 	private DataService dservice;
 	private BeaconService bservice;
     private DataInputStream inputStream;
@@ -30,11 +40,12 @@ public class HandleSocket implements Runnable{
     private String sn = "PCM010000000";
     private String secretKey = "666PCM01";
     private boolean isOraginalSN = true;
+    private Timer timer = null;
     private int tryTime = 10;
     private int sleepTime = 60 * 1000; //采集频率一分钟一次
     
     private Logger logger = LoggerFactory.getLogger(HandleSocket.class);
-
+    
 
     /**
      * 注册socket到map里
@@ -42,10 +53,11 @@ public class HandleSocket implements Runnable{
      * @param socket
      * @return
      */
-    public static HandleSocket register(Socket socket, DataService dservice, BeaconService bservice) {
+    public static HandleSocket register(Socket socket, Config config, DataService dservice, BeaconService bservice) {
         HandleSocket client = new HandleSocket();
         try {
             client.setSocket(socket);
+            client.setConfig(config);
             client.setDservice(dservice);
             client.setBservice(bservice);
             client.setInputStream(new DataInputStream(socket.getInputStream()));
@@ -85,11 +97,65 @@ public class HandleSocket implements Runnable{
     public String receive()  {
 		System.out.println("监听接收数据。。。。。");
         try {
+        	List<Byte> picByteList = new ArrayList<>();
+        	boolean isPic = false;
         	byte[] bytes = new byte[128];
 			int len = 0;
+			int count = 0;
 			while ((len = inputStream.read(bytes)) != -1) {
+				System.out.println(len);
 				
-				handleReceive(bytes);
+				System.out.println("接收指令结果");
+				System.out.println("原始数据：" + bytes);
+				System.out.println("原始数据str：" + new String(bytes));
+				
+				String dataStr = "";
+				String test = new String(bytes);
+				//图片流程
+				if(test.contains(">80>")) {
+					System.out.println("进入处理图片流程。。。");
+					//获取全部图片数据
+					byte[] res = new byte[bytes.length];
+					System.arraycopy(bytes, 0, res, 0, bytes.length);
+					//读取剩余数据
+					while ((len = inputStream.read(bytes)) != -1) {
+						byte[] temp = new byte[len];
+						System.arraycopy(bytes, 0, temp, 0, len);
+						byte[] temp2 = new byte[res.length + temp.length];
+						System.arraycopy(res, 0, temp2, 0, res.length);
+						System.arraycopy(temp, 0, temp2, res.length, temp.length);
+						res = temp2;
+						if(len < 128) {
+							break;
+						}
+					}
+					System.out.println("接收图片数据总长度：" + res.length);
+					/*System.out.println("开始处理图片。。。");
+					
+					int lastIndex = test.lastIndexOf(">");
+					byte[] temp = new byte[lastIndex + 1]; 
+					System.arraycopy(bytes, 0, temp, 0, lastIndex + 1);
+					String head = test.substring(0, lastIndex + 1);
+					System.out.println("head 长度：" + (lastIndex + 1));
+					System.out.println("head str：" + head);
+					
+					byte[] body = new byte[res.length - (lastIndex + 1)];
+					System.arraycopy(res, lastIndex + 1, body, 0, body.length);
+					System.out.println("body 长度：" + body.length);*/
+					
+					dataStr = new String(res, "ISO-8859-1");
+					
+				//正常流程
+				}else {
+					//解析接收到的字符串
+					dataStr = new String(XXTEA.decrypt(bytes, secretKey.getBytes())).trim();
+					System.out.println("解密数据：" + dataStr);
+				}
+				
+				String[] dataArray = dataStr.split(">");
+				String funCode = dataArray[1];
+				
+				handleReceive(funCode, dataArray);
 
 	        	try {
 					Thread.sleep(sleepTime);
@@ -139,29 +205,105 @@ public class HandleSocket implements Runnable{
     }
     
     
-    public void handleReceive(byte[] recData){
-    	
-		System.out.println("接收指令结果");
-		System.out.println("原始数据：" + recData);
-    	//解析接收到的字符串
-    	String dataStr = new String(XXTEA.decrypt(recData, secretKey.getBytes())).trim();
-		System.out.println("解密数据：" + dataStr);
-		String[] dataArray = dataStr.split(">");
-		if(dataArray.length < 2) {
-			return;
-		}
-		String funCode = dataArray[1];
+    public void handleReceive(String funCode, String[] dataArray){
+		
 		switch (funCode) {
 		case "1": //查询检测数据
 			handleReceiveQueryData(dataArray);
+			//启动数据监测Timer
+			//new DataCollectionTimer().start();
 			break;
 		case "101": //查询序列号
 			handleReceiveQuerySN(dataArray);
+			break;
+		case "80": //查询图片
+			handleReceiveQueryPic(dataArray);
 			break;
 
 		default:
 			break;
 		}
+    }
+    
+    public void handleReceiveQueryPic(String[] dataArray) {
+		System.out.println("解析查询图片数据...");
+		System.out.println("序列号：" + dataArray[0]);
+		System.out.println("funCode：" + dataArray[1]);
+		System.out.println("年：" + dataArray[2]);
+		System.out.println("月：" + dataArray[3]);
+		System.out.println("日：" + dataArray[4]);
+		System.out.println("时：" + dataArray[5]);
+		System.out.println("分：" + dataArray[6]);
+		System.out.println("秒：" + dataArray[7]);
+		System.out.println("length：" + dataArray.length);
+		
+		String bodyStr = "";
+		for (int i = 8; i < dataArray.length; i++) {
+			if(i == dataArray.length - 1) {
+				bodyStr += dataArray[i];
+			}else {
+				bodyStr += dataArray[i] + ">";
+			}
+		}
+		try {
+			byte[] body = bodyStr.getBytes("ISO-8859-1");
+			System.out.println("handleReceiveQueryPic body 长度：" + body.length);
+			
+			String basePath = Tools.isNullOrEmpty(config.out_static_path) ? App.rootPath + "static/" : config.out_static_path;
+			basePath = basePath.endsWith("/") ? basePath : basePath + "/";
+			basePath = basePath + "upload/" + dataArray[0] + "/";
+			String suffix = dataArray[2]+dataArray[3]+dataArray[4]+dataArray[5]+dataArray[6]+dataArray[7];
+			parsePicData(body, 0, basePath, suffix);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    	
+    }
+    
+    public void parsePicData(byte[] data, int index, String basePath, String suffix) {
+    	//图片名称
+    	index++;
+    	String fileName = basePath + suffix + "_" +index + ".jpg";
+    	//test error
+		/*byte[] test = new byte[data.length - 2000];
+		System.arraycopy(data, 0, test, 0, test.length);
+		data = test;*/
+    	//获取图片长度
+    	byte[] len = new byte[4];
+		System.arraycopy(data, 0, len, 0, len.length);
+		int lenInt = (int) ( (len[0] & 0xff) | (len[1] & 0xff) << 8 | (len[2] & 0xff) << 16 | (len[3] & 0xff) << 24 );
+		System.out.println("pic body length：" + lenInt);
+    	//获取图片数据
+    	byte[] body = new byte[lenInt];
+    	if(data.length < len.length + lenInt) {
+			System.out.println("图片数据不全：" + fileName);
+    		System.arraycopy(data, len.length, body, 0, data.length - len.length);
+    	}else {
+    		System.arraycopy(data, len.length, body, 0, body.length);
+    	}
+    	//保存图片
+    	System.out.println(fileName);
+    	File file = new File(fileName);
+		File pfile = file.getParentFile();
+		if(!pfile.exists()){
+			pfile.mkdirs();
+		}
+		try {
+			FileOutputStream out = new FileOutputStream(file);
+			out.write(body);
+			out.flush();
+			out.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}  
+		//检测是否有多张图片
+    	if(data.length > len.length + lenInt) {
+    		//剩余数据
+        	byte[] other = new byte[data.length - len.length - lenInt];
+    		System.arraycopy(data, len.length + lenInt, other, 0, other.length);
+    		parsePicData(other, index, basePath, suffix);
+    	}
     }
     
     public void handleReceiveQuerySN(String[] dataArray){
@@ -195,7 +337,10 @@ public class HandleSocket implements Runnable{
 			beacon.setStatus("Y");
 			bservice.modify(beacon);
 		}
+		//成功后退出
+		timer.cancel();
     } 
+    
     public void handleReceiveQueryData(String[] dataArray){
 		System.out.println("解析查询检测数据...");
 		System.out.println("序列号：" + dataArray[0]);
@@ -282,35 +427,36 @@ public class HandleSocket implements Runnable{
     @Override
     public void run() {
         
-        while (connect) {
+        if (connect) {
         	
         	//查询序列号
-			new Thread(new Runnable() {
+			timer = new Timer(true); 
+			timer.schedule(new TimerTask() {
 				
 				@Override
 				public void run() {
-
-		        	try {
-						Thread.sleep(10 * 1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-		        	
 					if(isOraginalSN) {
 						handleSend(sn, 101); 
-						//成功后退出
-						Thread.currentThread().interrupt();
 					}
 					//失败次数后，自动退出。
 		        	tryTime--;
 		        	if(tryTime <= 0) {
+		        		timer.cancel();
 		        		logout();
 		        	}
 				}
-			}).start();
+			}, 0, 10 * 1000);
 			 
         	//监听
-        	receive();
+			new Thread(new Runnable() {
+				
+				@Override
+				public void run() {
+					System.out.println("启动监听数据线程。。。");
+					receive();
+				}
+			}).start();
+
         }
 
     }
@@ -379,6 +525,14 @@ public class HandleSocket implements Runnable{
 
 	public void setSn(String sn) {
 		this.sn = sn;
+	}
+
+	public Config getConfig() {
+		return config;
+	}
+
+	public void setConfig(Config config) {
+		this.config = config;
 	}
     
 }
