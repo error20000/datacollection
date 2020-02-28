@@ -12,7 +12,7 @@ public class TestServer {
 
 	public static void main(String[] args) {
 		try {
-			Socket socket = new Socket("error20000.zicp.vip", 55412);  
+			Socket socket = new Socket("error20000.zicp.vip", 13379);  
 			//Socket socket = new Socket("127.0.0.1", 80);    
 			
 			// 建立连接后获得输出流

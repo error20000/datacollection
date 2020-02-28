@@ -153,6 +153,10 @@ public class HandleSocket implements Runnable{
 				}
 				
 				String[] dataArray = dataStr.split(">");
+				if(dataArray.length < 2) {
+					System.out.println("数据异常：" + dataStr);
+					continue;
+				}
 				String funCode = dataArray[1];
 				
 				handleReceive(funCode, dataArray);
@@ -166,6 +170,7 @@ public class HandleSocket implements Runnable{
 	        	//发送查询检测数据指令
 				if(!isOraginalSN) {
 					handleSend(sn, 1); 
+					handleSend(sn, 80); 
 				}
 			}
         } catch (IOException e) {
@@ -184,6 +189,9 @@ public class HandleSocket implements Runnable{
 		case 101:
 			handleSendQuerySN(sn);
 			break;
+		case 80:
+			handleSendQueryPic(sn);
+			break;
 
 		default:
 			break;
@@ -200,6 +208,13 @@ public class HandleSocket implements Runnable{
     public void handleSendQueryData(String sn){
 		System.out.println("发送查询检测数据指令。。。。。");
 		String str = sn +">1";
+		byte[] data = XXTEA.encrypt(str.getBytes(), secretKey.getBytes());
+		send(data);
+    }
+    
+    public void handleSendQueryPic(String sn){
+		System.out.println("发送查询图片数据指令。。。。。");
+		String str = sn +">80";
 		byte[] data = XXTEA.encrypt(str.getBytes(), secretKey.getBytes());
 		send(data);
     }
