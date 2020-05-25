@@ -1,27 +1,23 @@
 package com.jian.collection.mqtt;
 
-import java.io.ByteArrayInputStream;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.jian.collection.data.AbstractHandleDataService;
+import com.jian.collection.data.HandleReceiveDataService;
 
 
 @Service
-public class MqttService extends AbstractHandleDataService {
+public class MqttService {
 
 	@Autowired
 	private MsgSend msgSend;
+	@Autowired
+	private HandleReceiveDataService receiveService;
 	
 	public void receive(Object obj) {
 		byte[] bytes = (byte[]) obj;
-		super.receive(new ByteArrayInputStream(bytes));
+		receiveService.receive(bytes);
 	}
 
-	@Override
-	public void send(byte[] data) {
-		msgSend.sendToMqtt(data);
-	}
 	
 }

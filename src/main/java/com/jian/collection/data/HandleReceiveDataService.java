@@ -24,7 +24,7 @@ import com.jian.tools.core.MapTools;
 import com.jian.tools.core.Tools;
 
 @Service
-public abstract class HandleReceiveDataService {
+public class HandleReceiveDataService {
 	
 	@Autowired
     private Config config;
@@ -68,6 +68,7 @@ public abstract class HandleReceiveDataService {
 				return;
 			}
 			String funCode = dataArray[1];
+			System.out.println("funCode: " + funCode);
 			handleReceive(funCode, dataArray);
 	    } catch (IOException e) {
 	    	logger.error(e.getMessage());
