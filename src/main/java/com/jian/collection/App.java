@@ -20,6 +20,7 @@ public class App {
 		//项目目录
 		rootPath = App.class.getResource("/").getPath().replace("/target/classes/", "/");
     	System.out.println(rootPath);
+    	System.out.println(System.getProperty("user.dir"));
 		//扫描范围
     	if(App.class.isAnnotationPresent(SpringBootApplication.class)){
     		SpringBootApplication sba = App.class.getAnnotation(SpringBootApplication.class);
