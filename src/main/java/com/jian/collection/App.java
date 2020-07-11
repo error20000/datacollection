@@ -1,5 +1,7 @@
 package com.jian.collection;
 
+import java.io.File;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,9 +20,8 @@ public class App {
 
 	public static void main(String[] args) throws Exception {
 		//项目目录
-		rootPath = App.class.getResource("/").getPath().replace("/target/classes/", "/");
+		rootPath = System.getProperty("user.dir") + File.separator;
     	System.out.println(rootPath);
-    	System.out.println(System.getProperty("user.dir"));
 		//扫描范围
     	if(App.class.isAnnotationPresent(SpringBootApplication.class)){
     		SpringBootApplication sba = App.class.getAnnotation(SpringBootApplication.class);
@@ -32,6 +33,4 @@ public class App {
         //socket
         applicationContext.getBean(DelongServerSocket.class).start();
     }
-
-	
 }

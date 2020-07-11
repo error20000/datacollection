@@ -32,13 +32,13 @@ public class HandleSendDataService {
 
     public void handleSend(String sn, int funCode){
     	switch (funCode) {
-		case 1:
+		case InstructionCode.QueryData:
 			handleSendQueryData(sn);
 			break;
-		case 101:
+		case InstructionCode.QuerySN:
 			handleSendQuerySN(sn);
 			break;
-		case 80:
+		case InstructionCode.QueryPic:
 			handleSendQueryPic(sn);
 			break;
 
@@ -48,22 +48,22 @@ public class HandleSendDataService {
     }
     
     public void handleSendQuerySN(String sn){
-		System.out.println("发送查询序列号指令。。。。。");
-		String str = sn+">101";
+		String str = sn + ">" + InstructionCode.QuerySN;
+		System.out.println("发送查询序列号指令。。。。。"+str);
 		byte[] data = XXTEA.encrypt(str.getBytes(), config.secretKey.getBytes());
 		send(data);
     }
     
     public void handleSendQueryData(String sn){
-		System.out.println("发送查询检测数据指令。。。。。");
-		String str = sn +">1";
+		String str = sn + ">" + InstructionCode.QueryData;
+		System.out.println("发送查询检测数据指令。。。。。"+str);
 		byte[] data = XXTEA.encrypt(str.getBytes(), config.secretKey.getBytes());
 		send(data);
     }
     
     public void handleSendQueryPic(String sn){
-		System.out.println("发送查询图片数据指令。。。。。");
-		String str = sn +">80";
+		String str = sn + ">" + InstructionCode.QueryPic;
+		System.out.println("发送查询图片数据指令。。。。。"+str);
 		byte[] data = XXTEA.encrypt(str.getBytes(), config.secretKey.getBytes());
 		send(data);
     }

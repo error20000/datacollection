@@ -49,10 +49,15 @@ public class HandleReceiveDataService {
 			System.out.println("原始数据length：" + bytes.length);
 			System.out.println("原始数据str：" + new String(bytes));
 		
+			if(bytes.length < 128) {
+				System.out.println("数据异常.");
+				return;
+			}
+			
 			String dataStr = "";
 			String test = new String(bytes);
 			//图片流程
-			if(test.contains(">80>")) {
+			if(test.contains(">"+InstructionCode.QueryPic+">")) {
 				System.out.println("进入处理图片流程。。。");
 				dataStr = new String(bytes, "ISO-8859-1");
 			//正常流程
@@ -79,16 +84,14 @@ public class HandleReceiveDataService {
     
     public void handleReceive(String funCode, String[] dataArray){
 		
-		switch (funCode) {
-		case "1": //查询检测数据
+		switch (Tools.parseInt(funCode)) {
+		case InstructionCode.QueryData: //查询检测数据
 			handleReceiveQueryData(dataArray);
-			//启动数据监测Timer
-			//new DataCollectionTimer().start();
 			break;
-		case "101": //查询序列号
+		case InstructionCode.QuerySN: //查询序列号
 			handleReceiveQuerySN(dataArray);
 			break;
-		case "80": //查询图片
+		case InstructionCode.QueryPic: //查询图片
 			handleReceiveQueryPic(dataArray);
 			break;
 

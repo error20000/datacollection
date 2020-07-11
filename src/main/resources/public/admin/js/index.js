@@ -162,8 +162,12 @@ new Vue({
         }
       },
       mounted: function() {
-      	this.user = JSON.parse(localStorage.getItem('loginUser'));
-  		if(this.user　==　null){
+    	try {
+    		this.user = JSON.parse(localStorage.getItem('loginUser'));
+		} catch (e) {
+			localStorage.removeItem("loginUser");
+		}
+  		if(!this.user){
   			parent.window.location.href = "login.html";
   			return;
   		}

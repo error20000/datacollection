@@ -4,6 +4,9 @@ var queryUrl = baseUrl + "api/beacon/findPage";
 var addUrl = baseUrl + "api/beacon/add";
 var modUrl = baseUrl + "api/beacon/update";
 var delUrl = baseUrl + "api/beacon/delete";
+var picUrl = baseUrl + "api/beacon/pics";
+var rePicUrl = baseUrl + "api/beacon/refreshPic";
+var reDataUrl = baseUrl + "api/beacon/refreshData";
 
 var ajaxReq = parent.window.ajaxReq || "";
 
@@ -58,6 +61,9 @@ var myvue = new Vue({
 				editLoading: false,
 				editForm: {},
 				editFormRules: {},
+				//pic
+				picFormVisible: false,
+				picLists: [],
 				
 				user: ''
 			}
@@ -190,6 +196,76 @@ var myvue = new Vue({
 					}
 				});
 			},
+			//pic
+			handlePic: function (index, row) {
+				this.picFormVisible = true;
+				this.picLists = [];
+				var self = this;
+				ajaxReq(picUrl, {sn: row.sn }, function(res){
+					self.handleResQuery(res, function(){
+						let list = res.data;
+						//order
+						for (var i = 0; i < list.length; i++) {
+							for (var j = i; j < list.length; j++) {
+								if(list[i].time < list[j].time){
+									let temp = list[i];
+									list[i] = list[j];
+									list[j] = temp;
+								}
+							}
+						}
+						//foreach
+						for (var i = 0; i < list.length; i++) {
+							self.picLists.push({
+								name: list[i].name,
+								uri: '/upload/'+row.sn+'/'+list[i].name,
+								date: self.formatDate(new Date(list[i].time))
+							});
+						}
+					});
+				});
+			},
+			picClose: function(){
+				this.picFormVisible = false;
+			},
+			//refresh
+			handleRefreshPic: function (index, row) {
+				var self = this;
+				ajaxReq(rePicUrl, {sn: row.sn }, function(res){
+					self.handleResQuery(res, function(){
+						if(res.code > 0){
+							self.$message({
+								message: '成功发送查询图片指令。',
+								type: 'success'
+							});
+						}else{
+							self.$message({
+								message: '失败',
+								type: 'warning'
+							});
+						}
+					});
+				});
+			},
+			handleRefreshData: function (index, row) {
+				var self = this;
+				ajaxReq(reDataUrl, {sn: row.sn }, function(res){
+					self.handleResQuery(res, function(){
+						if(res.code > 0){
+							self.$message({
+								message: '成功发送查询检测数据指令。',
+								type: 'success'
+							});
+						}else{
+							self.$message({
+								message: '失败',
+								type: 'warning'
+							});
+						}
+					});
+				});
+			},
+			
 			
 			selsChange: function (sels) {
 				this.sels = sels;
@@ -241,8 +317,12 @@ var myvue = new Vue({
 			}
 		},
 		mounted: function() {
-	      	this.user = JSON.parse(localStorage.getItem('loginUser'));
-	  		if(this.user　==　null){
+	    	try {
+	    		this.user = JSON.parse(localStorage.getItem('loginUser'));
+			} catch (e) {
+				localStorage.removeItem("loginUser");
+			}
+	  		if(!this.user){
 	  			parent.window.location.href = "login.html";
 	  			return;
 	  		}

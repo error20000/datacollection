@@ -1,5 +1,7 @@
 package com.jian.collection.controller;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +13,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.jian.collection.App;
+import com.jian.collection.config.Config;
+import com.jian.collection.data.HandleSendDataService;
+import com.jian.collection.data.InstructionCode;
 import com.jian.collection.entity.Beacon;
 import com.jian.collection.entity.User;
 import com.jian.collection.service.BeaconService;
@@ -29,6 +35,10 @@ public class BeaconController extends BaseController<Beacon> {
 
 	@Autowired
 	private BeaconService service;
+	@Autowired
+	private Config config;
+	@Autowired
+	private HandleSendDataService sendService;
 	
 	@Override
 	public void initService() {
@@ -273,5 +283,141 @@ public class BeaconController extends BaseController<Beacon> {
 
 	//TODO 自定义方法
 
+
 	
+
+	@RequestMapping("/pics")
+    @ResponseBody
+	public String pics(HttpServletRequest req) {
+		
+		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//sign
+		vMap = verifySign(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//权限
+		vMap = verifyAuth(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		
+		//登录用户
+		User user = getLoginUser(req);
+		if(user == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
+		/*if(user.getAdmin() != 1){
+			return ResultTools.custom(Tips.ERROR201).toJSONString();
+		}*/
+
+		String sn = Tools.getReqParamSafe(req, "sn");
+		vMap = Tools.verifyParam("sn", sn, 0, 0);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		
+		String basePath = Tools.isNullOrEmpty(config.out_static_path) ? App.rootPath + "static/" : config.out_static_path;
+		basePath = basePath.endsWith("/") ? basePath : basePath + "/";
+		basePath = basePath + "upload/" + sn + "/";
+		
+		List<Map<String, Object>> list = new ArrayList<>();
+		File file = new File(basePath);
+		if(file.exists() && file.isDirectory()){
+			File[] flist = file.listFiles();
+			for (int i = 0; i < flist.length; i++) {
+				list.add(MapTools.custom()
+						.put("name", flist[i].getName())
+						.put("time", flist[i].lastModified())
+						.build());
+			}
+		}
+		
+        return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, list).toJSONString();
+	}
+	
+
+	@RequestMapping("/refreshPic")
+    @ResponseBody
+	public String refreshPic(HttpServletRequest req) {
+		
+		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//sign
+		vMap = verifySign(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//权限
+		vMap = verifyAuth(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		
+		//登录用户
+		User user = getLoginUser(req);
+		if(user == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
+		/*if(user.getAdmin() != 1){
+			return ResultTools.custom(Tips.ERROR201).toJSONString();
+		}*/
+
+		String sn = Tools.getReqParamSafe(req, "sn");
+		vMap = Tools.verifyParam("sn", sn, 0, 0);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		sendService.handleSend(sn, InstructionCode.QueryPic);
+        return ResultTools.custom(Tips.ERROR1).toJSONString();
+	}
+	
+
+	@RequestMapping("/refreshData")
+    @ResponseBody
+	public String refreshData(HttpServletRequest req) {
+		
+		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//sign
+		vMap = verifySign(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//权限
+		vMap = verifyAuth(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		
+		//登录用户
+		User user = getLoginUser(req);
+		if(user == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
+		/*if(user.getAdmin() != 1){
+			return ResultTools.custom(Tips.ERROR201).toJSONString();
+		}*/
+
+		String sn = Tools.getReqParamSafe(req, "sn");
+		vMap = Tools.verifyParam("sn", sn, 0, 0);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		sendService.handleSend(sn, InstructionCode.QueryData);
+        return ResultTools.custom(Tips.ERROR1).toJSONString();
+	}
 }
