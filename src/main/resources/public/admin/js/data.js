@@ -75,6 +75,7 @@ var myvue = new Vue({
 					start: '',
 					end: ''
 				};
+				this.page = 1;
 				this.getList();
 			},
 			getExcel: function(){

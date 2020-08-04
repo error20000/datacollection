@@ -1000,9 +1000,12 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
 		//-1 不参与分页
 		if(rows != -1){
 			//sql += " limit " + start + ", " + rows;
-			String sqltmp = " and rownum <= " + (start/rows + 1)*rows;
+			/*String sqltmp = " and rownum <= " + (start/rows + 1)*rows;
 			sqltmp += " minus  " + sql + " and rownum <= " + start;  // minus--差集   rownum--只能比较小于
-			sql += sqltmp;
+			sql += sqltmp;*/
+			//SELECT * FROM (SELECT rownum rn, a.* FROM (SELECT *  FROM s_data  WHERE 1=1 ORDER BY pid DESC) a where rownum <= 10) b  where rn > 0
+			String sqltmp = "SELECT * FROM (SELECT rownum rn, a.* FROM (" + sql + ") a where rownum <= " + (start/rows + 1)*rows + ") b  where rn > "+ start;
+			sql = sqltmp;
 		}
 		//DEBUG
 		debug(tableName, "QUERY SQL", sql);
@@ -1230,9 +1233,12 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
 		//-1 不参与分页
 		if(rows != -1){
 			//sql += " limit " + start + ", " + rows;
-			String sqltmp = " and rownum <= " + (start/rows + 1)*rows;
+			/*String sqltmp = " and rownum <= " + (start/rows + 1)*rows;
 			sqltmp += " minus  " + sql + " and rownum <= " + start;  // minus--差集   rownum--只能比较小于
-			sql += sqltmp;
+			sql += sqltmp;*/
+			//SELECT * FROM (SELECT rownum rn, a.* FROM (SELECT *  FROM s_data  WHERE 1=1 ORDER BY pid DESC) a where rownum <= 10) b  where rn > 0
+			String sqltmp = "SELECT * FROM (SELECT rownum rn, a.* FROM (" + sql + ") a where rownum <= " + (start/rows + 1)*rows + ") b  where rn > "+ start;
+			sql = sqltmp;
 		}
 		
 		//DEBUG
@@ -1621,9 +1627,12 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
 		}
 		
 		//sql = sql + " limit " + start + ", " + rows;
-		String sqltmp = " and rownum <= " + (start/rows + 1)*rows;
+		/*String sqltmp = " and rownum <= " + (start/rows + 1)*rows;
 		sqltmp += " minus  " + sql + " and rownum <= " + start;  // minus--差集   rownum--只能比较小于
-		sql += sqltmp;
+		sql += sqltmp;*/
+		//SELECT * FROM (SELECT rownum rn, a.* FROM (SELECT *  FROM s_data  WHERE 1=1 ORDER BY pid DESC) a where rownum <= 10) b  where rn > 0
+		String sqltmp = "SELECT * FROM (SELECT rownum rn, a.* FROM (" + sql + ") a where rownum <= " + (start/rows + 1)*rows + ") b  where rn > "+ start;
+		sql = sqltmp;
 		List<String> sqlParams = getSqlParams(sql);
 		String pSql = preparedSql(sql);
 		
@@ -1664,9 +1673,12 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
 		}
 		
 		//sql = sql + " limit " + start + ", " + rows;
-		String sqltmp = " and rownum <= " + (start/rows + 1)*rows;
+		/*String sqltmp = " and rownum <= " + (start/rows + 1)*rows;
 		sqltmp += " minus  " + sql + " and rownum <= " + start;  // minus--差集   rownum--只能比较小于
-		sql += sqltmp;
+		sql += sqltmp;*/
+		//SELECT * FROM (SELECT rownum rn, a.* FROM (SELECT *  FROM s_data  WHERE 1=1 ORDER BY pid DESC) a where rownum <= 10) b  where rn > 0
+		String sqltmp = "SELECT * FROM (SELECT rownum rn, a.* FROM (" + sql + ") a where rownum <= " + (start/rows + 1)*rows + ") b  where rn > "+ start;
+		sql = sqltmp;
 		List<String> sqlParams = getSqlParams(sql);
 		String pSql = preparedSql(sql);
 		

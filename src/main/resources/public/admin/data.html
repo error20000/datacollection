@@ -112,7 +112,8 @@
 				<!-- page tool -->
 				<el-col :span="24" class="toolbar">
 					<!-- <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">Batch remove</el-button> -->
-					<el-pagination layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange" @current-change="handleCurrentChange" :page-sizes="[10, 20, 50, 100]" :page-size="rows" :total="total" style="float:right;">
+					<el-pagination layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange" @current-change="handleCurrentChange" 
+						:page-sizes="[10, 20, 50, 100]" :page-size="rows" :total="total" :current-page="page" style="float:right;">
 					</el-pagination>
 				</el-col>
 			</el-tab-pane>

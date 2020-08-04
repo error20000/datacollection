@@ -105,7 +105,7 @@ public class DataController extends BaseController<Data> {
 		}
 		
 		
-		List<Data> list = service.getDao().findList(wsql, condition, start, Tools.parseInt(rows));
+		List<Data> list = service.getDao().findList(wsql + " order by pid desc", condition, start, Tools.parseInt(rows));
 		long total = service.getDao().size(wsql, condition);
         return ResultTools.custom(Tips.ERROR1).put(ResultKey.TOTAL, total).put(ResultKey.DATA, list).toJSONString();
 	}

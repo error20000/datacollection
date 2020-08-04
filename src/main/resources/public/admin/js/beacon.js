@@ -116,6 +116,7 @@ var myvue = new Vue({
 					connected: '',
 					status: ''
 				};
+				this.page = 1;
 				this.getList();
 			},
 			//add
