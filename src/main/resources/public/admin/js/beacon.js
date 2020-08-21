@@ -4,6 +4,7 @@ var queryUrl = baseUrl + "api/beacon/findPage";
 var addUrl = baseUrl + "api/beacon/add";
 var modUrl = baseUrl + "api/beacon/update";
 var delUrl = baseUrl + "api/beacon/delete";
+var picDirUrl = baseUrl + "api/beacon/picDirs";
 var picUrl = baseUrl + "api/beacon/pics";
 var rePicUrl = baseUrl + "api/beacon/refreshPic";
 var reDataUrl = baseUrl + "api/beacon/refreshData";
@@ -61,7 +62,12 @@ var myvue = new Vue({
 				editLoading: false,
 				editForm: {},
 				editFormRules: {},
+				//picDir
+				picDirTitle: "",
+				picDirFormVisible: false,
+				picDirLists: [],
 				//pic
+				picTitle: "",
 				picFormVisible: false,
 				picLists: [],
 				
@@ -197,12 +203,47 @@ var myvue = new Vue({
 					}
 				});
 			},
+			//picDir
+			handlePicDir: function (index, row) {
+				this.picDirTitle = row.sn;
+				this.picDirFormVisible = true;
+				this.picDirLists = [];
+				var self = this;
+				ajaxReq(picDirUrl, {sn: row.sn }, function(res){
+					self.handleResQuery(res, function(){
+						let list = res.data;
+						//order
+						for (var i = 0; i < list.length; i++) {
+							for (var j = i; j < list.length; j++) {
+								if(list[i].name > list[j].name){
+									let temp = list[i];
+									list[i] = list[j];
+									list[j] = temp;
+								}
+							}
+						}
+						//foreach
+						for (var i = 0; i < list.length; i++) {
+							self.picDirLists.push({
+								name: list[i].name,
+								sn: row.sn,
+								dir: list[i].name,
+								date: self.formatDate(new Date(list[i].time))
+							});
+						}
+					});
+				});
+			},
+			picDirClose: function(){
+				this.picDirFormVisible = false;
+			},
 			//pic
-			handlePic: function (index, row) {
+			handlePic: function (sn, dir) {
+				this.picTitle = sn + " > " + dir;
 				this.picFormVisible = true;
 				this.picLists = [];
 				var self = this;
-				ajaxReq(picUrl, {sn: row.sn }, function(res){
+				ajaxReq(picUrl, {sn: sn, dir: dir }, function(res){
 					self.handleResQuery(res, function(){
 						let list = res.data;
 						//order
@@ -219,7 +260,7 @@ var myvue = new Vue({
 						for (var i = 0; i < list.length; i++) {
 							self.picLists.push({
 								name: list[i].name,
-								uri: '/upload/'+row.sn+'/'+list[i].name,
+								uri: '/upload/'+sn+'/'+dir+'/'+list[i].name,
 								date: self.formatDate(new Date(list[i].time))
 							});
 						}

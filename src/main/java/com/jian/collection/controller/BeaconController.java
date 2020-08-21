@@ -286,9 +286,9 @@ public class BeaconController extends BaseController<Beacon> {
 
 	
 
-	@RequestMapping("/pics")
+	@RequestMapping("/picDirs")
     @ResponseBody
-	public String pics(HttpServletRequest req) {
+	public String picDirs(HttpServletRequest req) {
 		
 		Map<String, Object> vMap = null;
 		//登录
@@ -325,6 +325,67 @@ public class BeaconController extends BaseController<Beacon> {
 		String basePath = Tools.isNullOrEmpty(config.out_static_path) ? App.rootPath + "static/" : config.out_static_path;
 		basePath = basePath.endsWith("/") ? basePath : basePath + "/";
 		basePath = basePath + "upload/" + sn + "/";
+		
+		List<Map<String, Object>> list = new ArrayList<>();
+		File file = new File(basePath);
+		if(file.exists() && file.isDirectory()){
+			File[] flist = file.listFiles();
+			for (int i = 0; i < flist.length; i++) {
+				list.add(MapTools.custom()
+						.put("name", flist[i].getName())
+						.put("dir", flist[i].isDirectory())
+						.put("time", flist[i].lastModified())
+						.build());
+			}
+		}
+		
+        return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, list).toJSONString();
+	}
+	
+	@RequestMapping("/pics")
+    @ResponseBody
+	public String pics(HttpServletRequest req) {
+		
+		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//sign
+		vMap = verifySign(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//权限
+		vMap = verifyAuth(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		
+		//登录用户
+		User user = getLoginUser(req);
+		if(user == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
+		/*if(user.getAdmin() != 1){
+			return ResultTools.custom(Tips.ERROR201).toJSONString();
+		}*/
+
+		String sn = Tools.getReqParamSafe(req, "sn");
+		String dir = Tools.getReqParamSafe(req, "dir");
+		vMap = Tools.verifyParam("sn", sn, 0, 0);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		vMap = Tools.verifyParam("dir", dir, 0, 0);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		
+		String basePath = Tools.isNullOrEmpty(config.out_static_path) ? App.rootPath + "static/" : config.out_static_path;
+		basePath = basePath.endsWith("/") ? basePath : basePath + "/";
+		basePath = basePath + "upload/" + sn + "/" + dir + "/";
 		
 		List<Map<String, Object>> list = new ArrayList<>();
 		File file = new File(basePath);

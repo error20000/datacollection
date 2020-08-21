@@ -47,7 +47,7 @@ public class HandleReceiveDataService {
 			System.out.println("接收指令结果");
 			System.out.println("原始数据：" + bytes);
 			System.out.println("原始数据length：" + bytes.length);
-			System.out.println("原始数据str：" + new String(bytes));
+			System.out.println("原始数据str：" + new String(Arrays.copyOf(bytes, 128)) + "......");
 		
 			if(bytes.length < 128) {
 				System.out.println("数据异常.");
@@ -57,7 +57,10 @@ public class HandleReceiveDataService {
 			String dataStr = "";
 			String test = new String(bytes);
 			//图片流程
-			if(test.contains(">"+InstructionCode.QueryPic+">")) {
+			if(test.contains(">"+InstructionCode.QueryPic+">")
+					|| test.contains(">"+InstructionCode.QueryPic1+">")
+					|| test.contains(">"+InstructionCode.QueryPic2+">")
+					|| test.contains(">"+InstructionCode.QueryPic3+">")) {
 				System.out.println("进入处理图片流程。。。");
 				dataStr = new String(bytes, "ISO-8859-1");
 			//正常流程
@@ -94,6 +97,15 @@ public class HandleReceiveDataService {
 		case InstructionCode.QueryPic: //查询图片
 			handleReceiveQueryPic(dataArray);
 			break;
+		case InstructionCode.QueryPic1: //查询图片
+			handleReceiveQueryPic(dataArray);
+			break;
+		case InstructionCode.QueryPic2: //查询图片
+			handleReceiveQueryPic(dataArray);
+			break;
+		case InstructionCode.QueryPic3: //查询图片
+			handleReceiveQueryPic(dataArray);
+			break;
 
 		default:
 			break;
@@ -126,7 +138,7 @@ public class HandleReceiveDataService {
 			
 			String basePath = Tools.isNullOrEmpty(config.out_static_path) ? App.rootPath + "static/" : config.out_static_path;
 			basePath = basePath.endsWith("/") ? basePath : basePath + "/";
-			basePath = basePath + "upload/" + dataArray[0] + "/";
+			basePath = basePath + "upload/" + dataArray[0] + "/" + dataArray[1] + "/";
 			String suffix = dataArray[2]+dataArray[3]+dataArray[4]+dataArray[5]+dataArray[6]+dataArray[7];
 			parsePicData(body, 0, basePath, suffix);
 			

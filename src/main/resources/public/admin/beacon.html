@@ -138,7 +138,7 @@
 							    <el-dropdown-item @click.native="handleEdit(scope.$index, scope.row)" >
 							    	<i class="fas fa-edit"></i>&nbsp;编辑
 							    </el-dropdown-item>
-							    <el-dropdown-item @click.native="handlePic(scope.$index, scope.row)" >
+							    <el-dropdown-item @click.native="handlePicDir(scope.$index, scope.row)" >
 							    	<i class="fas fa-image"></i>&nbsp;查看图片
 							    </el-dropdown-item>
 							    <el-dropdown-item @click.native="handleRefreshPic(scope.$index, scope.row)" divided >
@@ -200,8 +200,25 @@
 		</el-dialog>
 		
 		
+		<!-- pic dir -->
+		<el-dialog :title="picDirTitle" :visible.sync="picDirFormVisible" :close-on-click-modal="false" width="50%">
+			<el-row>
+			  <el-col :span="9" v-for="(item, index) in picDirLists" :key="index" :offset="2">
+			    <el-card @click.native="handlePic(item.sn, item.dir)" :body-style="{ padding: '0px', cursor: 'pointer' }" style="margin-bottom:10px;">
+			      <img src="/admin/images/dir.png" class="image">
+			      <div style="padding: 14px;text-align: center;">
+			        <span>{{ item.name }}</span>
+			      </div>
+			    </el-card>
+			  </el-col>
+			</el-row>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click="picDirClose">关闭</el-button>
+			</div>
+		</el-dialog>
+		
 		<!-- pic -->
-		<el-dialog title="图集" :visible.sync="picFormVisible" :close-on-click-modal="false" width="90%">
+		<el-dialog :title="picTitle" :visible.sync="picFormVisible" :close-on-click-modal="false" width="90%">
 			<el-row>
 			  <el-col :span="9" v-for="(item, index) in picLists" :key="index" :offset="2">
 			    <el-card :body-style="{ padding: '0px' }" style="margin-bottom:10px;">
