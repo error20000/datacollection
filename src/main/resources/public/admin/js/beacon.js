@@ -70,6 +70,10 @@ var myvue = new Vue({
 				picTitle: "",
 				picFormVisible: false,
 				picLists: [],
+				picTotal: 0,
+				picPage: 1,
+				picRows: 10,
+				picParams: {},
 				
 				user: ''
 			}
@@ -242,8 +246,14 @@ var myvue = new Vue({
 				this.picTitle = sn + " > " + dir;
 				this.picFormVisible = true;
 				this.picLists = [];
+				this.picParams = {
+					sn: sn || this.picParams.sn, 
+					dir: dir || this.picParams.dir,
+					page: this.picPage,
+					rows: this.picRows
+				};
 				var self = this;
-				ajaxReq(picUrl, {sn: sn, dir: dir }, function(res){
+				ajaxReq(picUrl, this.picParams, function(res){
 					self.handleResQuery(res, function(){
 						let list = res.data;
 						//order
@@ -269,6 +279,14 @@ var myvue = new Vue({
 			},
 			picClose: function(){
 				this.picFormVisible = false;
+			},
+			handleSizeChangePic: function (val) {
+				this.picRows = val;
+				this.handlePic();
+			},
+			handleCurrentChangePic: function (val) {
+				this.picPage = val;
+				this.handlePic();
 			},
 			//refresh
 			handleRefreshPic: function (index, row) {

@@ -219,6 +219,15 @@
 		
 		<!-- pic -->
 		<el-dialog :title="picTitle" :visible.sync="picFormVisible" :close-on-click-modal="false" width="90%">
+			
+			<el-row>
+				<el-col :span="24" class="toolbar">
+					<el-pagination layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChangePic" @current-change="handleCurrentChangePic" 
+						:page-sizes="[10, 20, 50, 100]" :page-size="picRows" :total="picTotal" :current-page="picPage" style="text-align: center; margin: 0 0 5px 0;">
+					</el-pagination>
+				</el-col>
+			</el-row>
+			
 			<el-row>
 			  <el-col :span="9" v-for="(item, index) in picLists" :key="index" :offset="2">
 			    <el-card :body-style="{ padding: '0px' }" style="margin-bottom:10px;">
@@ -232,6 +241,15 @@
 			    </el-card>
 			  </el-col>
 			</el-row>
+			
+			<el-row>
+				<el-col :span="24" class="toolbar">
+					<el-pagination layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChangePic" @current-change="handleCurrentChangePic" 
+						:page-sizes="[10, 20, 50, 100]" :page-size="picRows" :total="picTotal" :current-page="picPage"  style="text-align: center; margin: 5px 0 0 0;">
+					</el-pagination>
+				</el-col>
+			</el-row>
+			
 			<div slot="footer" class="dialog-footer">
 				<el-button @click="picClose">关闭</el-button>
 			</div>
