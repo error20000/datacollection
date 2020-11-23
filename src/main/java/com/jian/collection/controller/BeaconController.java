@@ -2,9 +2,12 @@ package com.jian.collection.controller;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -374,6 +377,8 @@ public class BeaconController extends BaseController<Beacon> {
 
 		String sn = Tools.getReqParamSafe(req, "sn");
 		String dir = Tools.getReqParamSafe(req, "dir");
+		String page = Tools.getReqParamSafe(req, "page");
+		String rows = Tools.getReqParamSafe(req, "rows");
 		vMap = Tools.verifyParam("sn", sn, 0, 0);
 		if(vMap != null){
 			return JsonTools.toJsonString(vMap);
@@ -382,24 +387,41 @@ public class BeaconController extends BaseController<Beacon> {
 		if(vMap != null){
 			return JsonTools.toJsonString(vMap);
 		}
+		vMap = Tools.verifyParam("page", page, 0, 0, true);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		vMap = Tools.verifyParam("rows", rows, 0, 0, true);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		int start = Tools.parseInt(page) <= 1 ? 0 : (Tools.parseInt(page) - 1) * Tools.parseInt(rows);
+		int row = Tools.parseInt(page) * Tools.parseInt(rows);
 		
 		String basePath = Tools.isNullOrEmpty(config.out_static_path) ? App.rootPath + "static/" : config.out_static_path;
 		basePath = basePath.endsWith("/") ? basePath : basePath + "/";
 		basePath = basePath + "upload/" + sn + "/" + dir + "/";
 		
+		int total = 0;
 		List<Map<String, Object>> list = new ArrayList<>();
 		File file = new File(basePath);
 		if(file.exists() && file.isDirectory()){
 			File[] flist = file.listFiles();
-			for (int i = 0; i < flist.length; i++) {
+
+			int f = flist.length < start ? flist.length : start;
+			int t = flist.length < row ? flist.length :  row;
+			int count = 0;
+			for (int i = flist.length - 1 - f; i >= 0 && count < t ; i--) {
 				list.add(MapTools.custom()
 						.put("name", flist[i].getName())
 						.put("time", flist[i].lastModified())
 						.build());
+				count++;
 			}
+			total = flist.length;
 		}
 		
-        return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, list).toJSONString();
+        return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, list).put(ResultKey.TOTAL, total).toJSONString();
 	}
 	
 
