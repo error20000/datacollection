@@ -36,6 +36,7 @@ public class Data {
 	private float wd;
 	private String act;
 	private String createtime;
+	private int vol;
 	
 
 	public long getPid() {
@@ -169,6 +170,12 @@ public class Data {
 	}
 	public void setAf(int af) {
 		this.af = af;
+	}
+	public int getVol() {
+		return vol;
+	}
+	public void setVol(int vol) {
+		this.vol = vol;
 	}
 	
 }

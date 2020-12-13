@@ -47,7 +47,7 @@ public class HandleReceiveDataService {
 			System.out.println("接收指令结果");
 			System.out.println("原始数据：" + bytes);
 			System.out.println("原始数据length：" + bytes.length);
-			System.out.println("原始数据str：" + new String(Arrays.copyOf(bytes, 128)) + "......");
+			//System.out.println("原始数据str：" + new String(Arrays.copyOf(bytes, 128)) + "......");
 		
 			if(bytes.length < 128) {
 				System.out.println("数据异常.");
@@ -232,8 +232,8 @@ public class HandleReceiveDataService {
     }
     
 	public void saveData(String[] str){
-		//SN>1>AF>S1>S2>S3>S4>AX>AY>TY>TM>TD>TH>Tm>TS>GS>DXJ>JD>NBW>WD
-		//PCM011900001>1>0>99>98>99>99>1.0>6.2>19>03>27>16>35>06>Y>E>5604.051>N>2936.619
+		//SN>1>AF>S1>S2>S3>S4>AX>AY>TY>TM>TD>TH>Tm>TS>GS>DXJ>JD>NBW>WD>VOL
+		//PCM011900001>1>0>99>98>99>99>1.0>6.2>19>03>27>16>35>06>Y>E>5604.051>N>2936.619>1000
 		logger.info("{} 收到消息： {}", DateTools.formatDate(), Arrays.stream(str).collect(Collectors.joining(">")));
 		Data obj = new Data();
 		for (int i = 0; i < str.length; i++) {
@@ -258,6 +258,7 @@ public class HandleReceiveDataService {
 			obj.setJd(Float.parseFloat(str[17]));
 			obj.setNbw(str[18]);
 			obj.setWd(Float.parseFloat(str[19]));
+			obj.setVol(Integer.parseInt(str[20])); //新增 2020-12-12
 			obj.setAct("");
 		}
 		dservice.add(obj);

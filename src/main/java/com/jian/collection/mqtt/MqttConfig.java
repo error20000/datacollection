@@ -139,7 +139,7 @@ public class MqttConfig {
         return new MessageHandler() {
             @Override
             public void handleMessage(Message<?> message) throws MessagingException {
-            	logger.info("主题：{}，消息接收到的数据：{}", message.getHeaders().get(MqttHeaders.RECEIVED_TOPIC), message.getPayload());
+            	//logger.info("主题：{}，消息接收到的数据：{}", message.getHeaders().get(MqttHeaders.RECEIVED_TOPIC), message.getPayload());
             	mqttService.receive(message.getPayload());
             }
         };

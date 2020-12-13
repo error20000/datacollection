@@ -211,7 +211,7 @@ public class DataController extends BaseController<Data> {
             HSSFSheet sheet = workbook.createSheet("sheet");
 
 			//设置表头
-			String head = "Pid,序列号,接收时间,报警标识,S1,S2,S3,S4,X轴角度,Y轴角度,GPS状态,东西经,经度,南北纬,纬度,年,月,日,时,分,秒,自动校时";
+			String head = "Pid,序列号,接收时间,报警标识,S1,S2,S3,S4,X轴角度,Y轴角度,GPS状态,东西经,经度,南北纬,纬度,年,月,日,时,分,秒,自动校时,电池电压";
 			String[] heads = head.split(",");
             HSSFRow row = sheet.createRow(0);
             //设置列宽，setColumnWidth的第二个参数要乘以256，这个参数的单位是1/256个字符宽度
@@ -258,6 +258,7 @@ public class DataController extends BaseController<Data> {
 				rowc.createCell(19).setCellValue(node.getTmm());
 				rowc.createCell(20).setCellValue(node.getTs());
 				rowc.createCell(21).setCellValue(node.getAct());
+				rowc.createCell(22).setCellValue(node.getVol());
 			}
 			workbook.write(toClient);
 			workbook.close();
