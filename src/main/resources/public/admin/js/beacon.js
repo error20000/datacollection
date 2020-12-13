@@ -70,6 +70,10 @@ var myvue = new Vue({
 				picTitle: "",
 				picFormVisible: false,
 				picLists: [],
+				picTotal: 0,
+				picPage: 1,
+				picRows: 10,
+				picParams: {},
 				
 				user: ''
 			}
@@ -239,15 +243,26 @@ var myvue = new Vue({
 			},
 			//pic
 			handlePic: function (sn, dir) {
-				this.picTitle = sn + " > " + dir;
+				if(dir){
+					this.picPage = 1;
+					this.picRows = 10;
+				}
 				this.picFormVisible = true;
 				this.picLists = [];
+				this.picParams = {
+					sn: sn || this.picParams.sn, 
+					dir: dir || this.picParams.dir,
+					page: this.picPage,
+					rows: this.picRows
+				};
+				this.picTitle = this.picParams.sn + " > " + this.picParams.dir;
 				var self = this;
-				ajaxReq(picUrl, {sn: sn, dir: dir }, function(res){
+				ajaxReq(picUrl, this.picParams, function(res){
 					self.handleResQuery(res, function(){
+						self.picTotal = res.total;
 						let list = res.data;
 						//order
-						for (var i = 0; i < list.length; i++) {
+						/*for (var i = 0; i < list.length; i++) {
 							for (var j = i; j < list.length; j++) {
 								if(list[i].time < list[j].time){
 									let temp = list[i];
@@ -255,12 +270,12 @@ var myvue = new Vue({
 									list[j] = temp;
 								}
 							}
-						}
+						}*/
 						//foreach
 						for (var i = 0; i < list.length; i++) {
 							self.picLists.push({
 								name: list[i].name,
-								uri: '/upload/'+sn+'/'+dir+'/'+list[i].name,
+								uri: '/upload/'+self.picParams.sn+'/'+self.picParams.dir+'/'+list[i].name,
 								date: self.formatDate(new Date(list[i].time))
 							});
 						}
@@ -269,6 +284,14 @@ var myvue = new Vue({
 			},
 			picClose: function(){
 				this.picFormVisible = false;
+			},
+			handleSizeChangePic: function (val) {
+				this.picRows = val;
+				this.handlePic();
+			},
+			handleCurrentChangePic: function (val) {
+				this.picPage = val;
+				this.handlePic();
 			},
 			//refresh
 			handleRefreshPic: function (index, row) {
