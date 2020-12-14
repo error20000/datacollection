@@ -30,7 +30,7 @@ public class MqttSendTest {
 
 	@Test
 	public void Test2(){
-		String dataStr = "PCM011900001>1>0>99>98>99>99>1.0>6.2>19>03>27>16>35>06>Y>E>5604.051>N>2936.619";
+		String dataStr = "PCM011900001>1>0>99>98>99>99>1.0>6.2>19>03>27>16>35>06>Y>E>5604.051>N>2936.619>10000";
 		byte[] dataByte = dataStr.getBytes();
 		byte[] temp = new byte[128];
 		System.arraycopy(dataByte, 0, temp, 0, dataByte.length);
