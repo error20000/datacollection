@@ -8,6 +8,7 @@ var picDirUrl = baseUrl + "api/beacon/picDirs";
 var picUrl = baseUrl + "api/beacon/pics";
 var rePicUrl = baseUrl + "api/beacon/refreshPic";
 var reDataUrl = baseUrl + "api/beacon/refreshData";
+var settingUrl = baseUrl + "api/beacon/setting";
 
 var ajaxReq = parent.window.ajaxReq || "";
 
@@ -74,6 +75,11 @@ var myvue = new Vue({
 				picPage: 1,
 				picRows: 10,
 				picParams: {},
+				//setting
+				setFormVisible: false,
+				setLoading: false, 
+				setForm: {},
+				setFormRules: {},
 				
 				user: ''
 			}
@@ -330,6 +336,41 @@ var myvue = new Vue({
 					});
 				});
 			},
+			//setting
+			handleSet: function(index, row){
+				this.setFormVisible = true;
+				this.setForm = {
+						sn: row.sn,
+						s1: '',
+						s2: '',
+						s3: '',
+						s4: '',
+						ax: '',
+						ay: ''
+				};
+			},
+			setClose: function () {
+				this.setFormVisible = false;
+				this.setLoading = false;
+				this.$refs.setForm.resetFields();
+			},
+			setSubmit: function () {
+				this.$refs.setForm.validate((valid) => {
+					if (valid) {
+						this.$confirm('确定提交吗?', '提示', {}).then(() => {
+							var params = Object.assign({}, this.setForm);
+							var self = this;
+							this.setLoading = true;
+							ajaxReq(settingUrl, params, function(res){
+								self.setLoading = false;
+								self.handleResOperate(res, function(){
+									self.setFormVisible = false;
+								});
+							});
+						});
+					}
+				});
+			},
 			
 			
 			selsChange: function (sels) {
@@ -371,7 +412,7 @@ var myvue = new Vue({
 				}else{
 					if(show){
 						this.$message({
-							message: '失败',
+							message: '失败：' + res.msg,
 							type: 'warning'
 						});
 					}

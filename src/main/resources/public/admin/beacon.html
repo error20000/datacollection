@@ -147,6 +147,9 @@
 							    <el-dropdown-item @click.native="handleRefreshData(scope.$index, scope.row)" >
 							    	<i class="fas fa-sync"></i>&nbsp;更新数据
 							    </el-dropdown-item>
+							    <el-dropdown-item @click.native="handleSet(scope.$index, scope.row)" >
+							    	<i class="fas fa-cog"></i>&nbsp;设置配置
+							    </el-dropdown-item>
 							    <el-dropdown-item @click.native="handleDel(scope.$index, scope.row)" divided style="color: #f56c6c;" >
 							    	<i class="fas fa-trash-alt"></i>&nbsp;删除
 							    </el-dropdown-item>
@@ -252,6 +255,38 @@
 			
 			<div slot="footer" class="dialog-footer">
 				<el-button @click="picClose">关闭</el-button>
+			</div>
+		</el-dialog>
+		
+		
+		<!-- setting -->
+		<el-dialog title="设置" :visible.sync="setFormVisible" :close-on-click-modal="false">
+			<el-form :model="setForm"  :rules="setFormRules" ref="setForm" label-width="80px">
+				<el-form-item label="序列号" prop="sn">
+					<el-input type="text" v-model="setForm.sn" disabled></el-input>
+				</el-form-item>
+				<el-form-item label="S1" prop="s1">
+					<el-input type="text" v-model="setForm.s1"></el-input>
+				</el-form-item>
+				<el-form-item label="S2" prop="s2">
+					<el-input type="text" v-model="setForm.s2"></el-input>
+				</el-form-item>
+				<el-form-item label="S3" prop="s3">
+					<el-input type="text" v-model="setForm.s3"></el-input>
+				</el-form-item>
+				<el-form-item label="S4" prop="s4">
+					<el-input type="text" v-model="setForm.s4"></el-input>
+				</el-form-item>
+				<el-form-item label="AX" prop="ax">
+					<el-input type="text" v-model="setForm.ax"></el-input>
+				</el-form-item>
+				<el-form-item label="AY" prop="ay">
+					<el-input type="text" v-model="setForm.ay"></el-input>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click="setClose">取消</el-button>
+				<el-button type="primary" @click="setSubmit" :loading="setLoading">提交</el-button>
 			</div>
 		</el-dialog>
 		

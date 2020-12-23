@@ -19,4 +19,5 @@ public interface MsgSend {
     void sendToMqtt(String data, @Header(MqttHeaders.TOPIC) String topic, @Header(MqttHeaders.QOS) int qos);
     
 	void sendToMqtt(byte[] data);
+    void sendToMqtt(byte[] data, @Header(MqttHeaders.TOPIC) String topic);
 }

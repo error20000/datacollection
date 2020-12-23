@@ -3,8 +3,8 @@ package com.jian.collection.data;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +35,9 @@ public class HandleReceiveDataService {
 	
     
     private Logger logger = LoggerFactory.getLogger(HandleReceiveDataService.class);
+    
+    
+    public static Map<String, String> smap = new HashMap<String, String>(); //指令结果
     
 
     /**
@@ -105,6 +108,9 @@ public class HandleReceiveDataService {
 			break;
 		case InstructionCode.QueryPic3: //查询图片
 			handleReceiveQueryPic(dataArray);
+			break;
+		case InstructionCode.Setting: //设置配置信息
+			handleReceiveSetting(dataArray);
 			break;
 
 		default:
@@ -266,5 +272,19 @@ public class HandleReceiveDataService {
 		dservice.add(obj);
 	}
 
+    public void handleReceiveSetting(String[] dataArray){
+		System.out.println("解析查询检测数据...");
+		System.out.println("序列号：" + dataArray[0]);
+		System.out.println("funCode：" + dataArray[1]);
+		//设置结果
+		String key = resKey4Setting(dataArray[0]);
+		smap.put(key, dataArray[2]);
+    }
+    
+    
+    
+    public static String resKey4Setting(String sn){
+		return sn + " - " + InstructionCode.Setting;
+    }
     
 }

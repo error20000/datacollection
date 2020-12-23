@@ -8,5 +8,6 @@ public class InstructionCode {
 	public final static int QueryPic1 = 81;
 	public final static int QueryPic2 = 82;
 	public final static int QueryPic3 = 83;
+	public final static int Setting = 3;
 
 }

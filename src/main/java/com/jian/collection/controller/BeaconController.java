@@ -2,12 +2,9 @@ package com.jian.collection.controller;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -18,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jian.collection.App;
 import com.jian.collection.config.Config;
+import com.jian.collection.data.HandleReceiveDataService;
 import com.jian.collection.data.HandleSendDataService;
 import com.jian.collection.data.InstructionCode;
 import com.jian.collection.entity.Beacon;
@@ -503,4 +501,71 @@ public class BeaconController extends BaseController<Beacon> {
 		sendService.handleSend(sn, InstructionCode.QueryData);
         return ResultTools.custom(Tips.ERROR1).toJSONString();
 	}
+	
+
+	@RequestMapping("/setting")
+    @ResponseBody
+	public String setting(HttpServletRequest req) {
+		
+		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//sign
+		vMap = verifySign(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//权限
+		vMap = verifyAuth(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		
+		//登录用户
+		User user = getLoginUser(req);
+		if(user == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
+		/*if(user.getAdmin() != 1){
+			return ResultTools.custom(Tips.ERROR201).toJSONString();
+		}*/
+
+		String sn = Tools.getReqParamSafe(req, "sn");
+		String s1 = Tools.getReqParamSafe(req, "s1");
+		String s2 = Tools.getReqParamSafe(req, "s2");
+		String s3 = Tools.getReqParamSafe(req, "s3");
+		String s4 = Tools.getReqParamSafe(req, "s4");
+		String ax = Tools.getReqParamSafe(req, "ax");
+		String ay = Tools.getReqParamSafe(req, "ay");
+		vMap = Tools.verifyParam("sn", sn, 0, 0);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		sendService.handleSendSetting(sn, Tools.parseInt(s1), Tools.parseInt(s2), Tools.parseInt(s3), Tools.parseInt(s4), Tools.parseFloat(ax), Tools.parseFloat(ay));
+		//最长等待30秒返回
+		String key = HandleReceiveDataService.resKey4Setting(sn); //结果集KEY
+		int count = 0;
+		while (count < 300) {
+			try {
+				Thread.sleep(100);// 休眠100毫秒
+				String res = HandleReceiveDataService.smap.get(key);
+				if(res != null) {
+					HandleReceiveDataService.smap.remove(key);
+					if("OK".equalsIgnoreCase(res)) {
+						return ResultTools.custom(Tips.ERROR1).toJSONString();
+					}else {
+						return ResultTools.custom(Tips.ERROR0).toJSONString();
+					}
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			count++;
+		}
+		return ResultTools.custom(Tips.ERROR209, "获取结果").toJSONString();
+	}
+	
 }

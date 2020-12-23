@@ -68,5 +68,11 @@ public class HandleSendDataService {
 		send(data);
     }
     
+    public void handleSendSetting(String sn, int s1, int s2, int s3, int s4, float ax, float ay){
+		String str = sn + ">" + InstructionCode.Setting + ">" + s1 + ">" + s2 + ">" + s3 + ">" + s4 + ">" + ax + ">" + ay + ">Y";
+		System.out.println("发送设置配置指令。。。。。"+str);
+		byte[] data = XXTEA.encrypt(str.getBytes(), config.secretKey.getBytes());
+		send(data);
+    }
     
 }

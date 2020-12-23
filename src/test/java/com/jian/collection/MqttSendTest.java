@@ -68,4 +68,16 @@ public class MqttSendTest {
 		}
 	}
 	
+	@Test
+	public void Test4(){
+		String dataStr = "PCM011900001>3>OK";
+		byte[] dataByte = dataStr.getBytes();
+		byte[] temp = new byte[128];
+		System.arraycopy(dataByte, 0, temp, 0, dataByte.length);
+		byte[] data = XXTEA.encrypt(temp, config.secretKey.getBytes());
+		System.out.println("=====>" + data.length);
+		msgSend.sendToMqtt(data, "test/topic");
+		System.out.println("------Test4 end------");
+	}
+	
 }
