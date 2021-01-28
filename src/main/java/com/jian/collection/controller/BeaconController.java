@@ -394,7 +394,7 @@ public class BeaconController extends BaseController<Beacon> {
 			return JsonTools.toJsonString(vMap);
 		}
 		int start = Tools.parseInt(page) <= 1 ? 0 : (Tools.parseInt(page) - 1) * Tools.parseInt(rows);
-		int row = Tools.parseInt(page) * Tools.parseInt(rows);
+		int row = Tools.parseInt(rows);
 		
 		String basePath = Tools.isNullOrEmpty(config.out_static_path) ? App.rootPath + "static/" : config.out_static_path;
 		basePath = basePath.endsWith("/") ? basePath : basePath + "/";
